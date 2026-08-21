@@ -442,16 +442,12 @@ GuiMusicPlayer.handlePreviousKey = function() {
 		
 	//If song over 5 seconds long, previous song returns to start of current song, else go back to previous
 	this.currentPlayingItem = (timeOfStoppedSong > 5 ) ? this.currentPlayingItem : this.currentPlayingItem-1;
-		
-	alert ("Queue Length : " + this.queuedItems.length);
-	alert ("Current Playing ID : " + this.currentPlayingItem);
-		
-	if (this.queuedItems.length <= this.currentPlayingItem) {	
+
+	if (this.queuedItems.length <= this.currentPlayingItem) {
 		this.returnToPage();
 	} else {
 		//Play Next Item
-		this.videoURL = Server.getServerAddr() + '/Audio/'+this.queuedItems[this.currentPlayingItem].Id+'/Stream.mp3?static=true&MediaSource='+this.queuedItems[this.currentPlayingItem].MediaSources[0].Id;
-		alert ("Next " + this.videoURL);
+		this.videoURL = Server.getServerAddr() + '/Audio/'+this.queuedItems[this.currentPlayingItem].Id+'/Stream.mp3?static=true&MediaSource='+this.queuedItems[this.currentPlayingItem].MediaSources[0].Id + '&api_key=' + Server.getAuthToken();
 		//Start Playback
 		this.handlePlayKey();
 	}

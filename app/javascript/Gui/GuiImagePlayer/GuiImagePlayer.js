@@ -59,7 +59,7 @@ GuiImagePlayer.start = function(ItemData,selectedItem,isPhotoCollection) {
 	imageIdx = 0;
 	for (var index = 0; index < result.Items.length; index++) {
 		//Dont use server function here to prevent these large images caching!
-		var temp = Server.getServerAddr() + "/Items/"+ this.newItemData.Items[index].Id +"/Images/Primary/0?maxwidth=1920&maxheight=1080&quality=90";
+		var temp = Server.getServerAddr() + "/Items/"+ this.newItemData.Items[index].Id +"/Images/Primary/0?maxwidth=1920&maxheight=1080&quality=90" + "&api_key=" + Server.getAuthToken();
 		this.images.push(temp);
 		
 		if (this.newItemData.Items[index].PremiereDate !== undefined) {
@@ -109,7 +109,7 @@ GuiImagePlayer.setNormalMode = function() {
 	
 	for (var i=0; i < this.newItemData.Items.length; i++){
 		//Dont use server function here to prevent these large images caching!
-		var ImageUrl = Server.getServerAddr() + "/Items/"+ this.newItemData.Items[i].Id +"/Images/Primary/0?maxwidth=1920&maxheight=1080&quality=90";
+		var ImageUrl = Server.getServerAddr() + "/Items/"+ this.newItemData.Items[i].Id +"/Images/Primary/0?maxwidth=1920&maxheight=1080&quality=90" + "&api_key=" + Server.getAuthToken();
 		this.photos[i] = {
 		        url: ImageUrl,
 		        width: 1920,
