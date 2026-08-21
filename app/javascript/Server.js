@@ -162,6 +162,11 @@ Server.getImageURL = function(itemId,imagetype,maxwidth,maxheight,unplayedcount,
 		break;
 	}
 
+	// Image endpoints are loaded via <img src> / blob XHR that bypass
+	// setRequestHeaders, so the token must ride along in the query string.
+	var token = Server.getAuthToken();
+	var authQuery = token ? "&api_key=" + token : "";
+
 	if (Main.isImageCaching()) {
 			var found = false;
 
@@ -178,7 +183,7 @@ Server.getImageURL = function(itemId,imagetype,maxwidth,maxheight,unplayedcount,
 				return Support.imageCachejson.Images[i].DataURI;
 			} else {
 				//Use URL & Add to Cache
-				var full = Server.getServerAddr() +  query;
+				var full = Server.getServerAddr() +  query + authQuery;
 
 				var xhr = new XMLHttpRequest();
 				xhr.open('GET', full, true);
@@ -196,7 +201,7 @@ Server.getImageURL = function(itemId,imagetype,maxwidth,maxheight,unplayedcount,
 				return full;
 			}
 	} else {
-		return Server.getServerAddr() +  query;
+		return Server.getServerAddr() +  query + authQuery;
 	}
 }
 
@@ -210,7 +215,8 @@ Server.getScreenSaverImageURL = function(itemId,imagetype,maxwidth,maxheight) {
 			query =   Server.getServerAddr() + "/Items/"+ itemId +"/Images/Primary/0?quality=90&maxwidth="+maxwidth+"&maxheight="+maxheight;
 			break;
 	}
-	return query;
+	var token = Server.getAuthToken();
+	return token ? query + "&api_key=" + token : query;
 }
 
 Server.getBackgroundImageURL = function(itemId,imagetype,maxwidth,maxheight,unplayedcount,played,playedpercentage,totalbackdrops) {
@@ -226,7 +232,8 @@ Server.getBackgroundImageURL = function(itemId,imagetype,maxwidth,maxheight,unpl
 
 	query = query + "&Quality=90";
 
-	return query;
+	var token = Server.getAuthToken();
+	return token ? query + "&api_key=" + token : query;
 }
 
 Server.getStreamUrl = function(itemId,mediaSourceId){
@@ -307,7 +314,7 @@ Server.getUserViews = function () {
 //------------------------------------------------------------
 Server.updateUserConfiguration = function(contentToPost) {
 	var url = this.serverAddr + "/Users/" + Server.getUserID() + "/Configuration";
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("POST", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -385,11 +392,11 @@ Server.videoTime = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionId)
 	}
 }
 
-Server.stopHLSTranscode = function() {
-	var url = this.serverAddr + "/Videos/ActiveEncodings?DeviceId="+this.DeviceID;
+Server.stopHLSTranscode = function(playSessionId) {
+	var url = this.serverAddr + "/Videos/ActiveEncodings?DeviceId="+this.DeviceID + (playSessionId ? "&PlaySessionId="+playSessionId : "");
 	xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
-		xmlHttp.open("POST", url , true); //must be true!
+		xmlHttp.open("DELETE", url , true); //ActiveEncodings is a DELETE endpoint
 		xmlHttp = this.setRequestHeaders(xmlHttp);
 		xmlHttp.send(null);
 	}
@@ -479,7 +486,6 @@ Server.addToPlaylist = function(playlistId, ids) {
 
 Server.removeFromPlaylist = function(playlistId, ids) {
 	var url = this.serverAddr + "/Playlists/"+ playlistId + "/Items?EntryIds=" + ids + "&userId="+Server.getUserID();
-	alert(url)
 	xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("DELETE", url , true); //must be true!
@@ -539,7 +545,9 @@ Server._tryConnectWithPath = function (server, pathIndex, fromFile) {
 	}
 
 	var basePath = Server._basePaths[pathIndex];
-	var testUrl = "http://" + server + basePath + "/System/Info/Public?format=json";
+	// Accept host, host:port, or a full URL; only default to http:// when no scheme was given.
+	var serverBase = /^https?:\/\//i.test(server) ? server : "http://" + server;
+	var testUrl = serverBase + basePath + "/System/Info/Public?format=json";
 
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.open("GET", testUrl, false);
@@ -567,7 +575,7 @@ Server._tryConnectWithPath = function (server, pathIndex, fromFile) {
 		}
 
 		// Set Server.serverAddr with detected base path
-		Server.setServerAddr("http://" + server + basePath);
+		Server.setServerAddr(serverBase + basePath);
 
 		// Check Server Version
 		if (ServerVersion.checkServerVersion()) {

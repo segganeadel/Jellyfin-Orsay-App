@@ -199,8 +199,8 @@ GuiPlayer.stopPlayback = function() {
 	
 	//If D series need to stop HLS Encoding
 	if (Main.getModelYear() == "D") {
-		Server.stopHLSTranscode();
-	}	
+		Server.stopHLSTranscode(this.PlaySessionId);
+	}
 };
 
 GuiPlayer.setDisplaySize = function() {
