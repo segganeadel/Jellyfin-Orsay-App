@@ -87,10 +87,10 @@ var GuiUsers_Manual_Input  = function(id) {
             	//Set IME to Password field
             	GuiUsers_Manual.selectedItem++;
             	new GuiUsers_Manual_Input("pass");
-            	document.getElementById("pass").focus;
+            	document.getElementById("pass").focus();
             } else {
             	//Process Login Here
-            	var usr = document.getElementById("user").value;
+            	var usr = Support.trimInput(document.getElementById("user").value);
             	var pwd = document.getElementById("pass").value;
             	GuiUsers_Manual.IMEAuthenticate(usr,pwd);
             }        
@@ -102,7 +102,7 @@ var GuiUsers_Manual_Input  = function(id) {
             	//Set IME to Password field
             	GuiUsers_Manual.selectedItem++;
             	new GuiUsers_Manual_Input("pass");
-            	document.getElementById("pass").focus;
+            	document.getElementById("pass").focus();
             } else {
             	document.getElementById("guiUsers_rempwd").style.color = "red";
             	document.getElementById("GuiUsers_Manual_Pwd").focus();
@@ -115,7 +115,7 @@ var GuiUsers_Manual_Input  = function(id) {
             	//Set IME to Username field
             	GuiUsers_Manual.selectedItem--;
             	new GuiUsers_Manual_Input("user");
-            	document.getElementById("user").focus;
+            	document.getElementById("user").focus();
             }        
         });
         

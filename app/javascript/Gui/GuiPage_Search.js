@@ -144,7 +144,7 @@ ime.setKeypadPos(1300,90);
 var installFocusKeyCallbacks = function () {
     ime.setKeyFunc(tvKey.KEY_ENTER, function (keyCode) {
         alert("Enter key pressed");    
-        var searchString = document.getElementById("searchInput").value;
+        var searchString = Support.trimInput(document.getElementById("searchInput").value);
         if (searchString != "") {
         	//Load Data
         	var url = Server.getSearchURL(searchString);

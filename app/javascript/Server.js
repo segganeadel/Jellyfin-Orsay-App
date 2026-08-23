@@ -645,6 +645,18 @@ Server._tryConnectWithPath = function (server, pathIndex, fromFile) {
 //------------------------------------------------------------
 
 Server.Authenticate = function(UserId, UserName, Password) {
+	// The on-screen keyboard leaves stray whitespace in the input fields, and
+	// the server compares the name literally - " adels" is not "adels". A TV
+	// remote cannot type a deliberate leading or trailing space, so trimming
+	// both fields is safe and stops a silent "bad username or password".
+	UserName = (UserName == null) ? "" : String(UserName).replace(/^\s+|\s+$/g, "");
+	Password = (Password == null) ? "" : String(Password).replace(/^\s+|\s+$/g, "");
+
+	if (UserName == "") {
+		FileLog.write("Auth : Refused - no username entered");
+		return false;
+	}
+
 	var url = Server.getServerAddr() + "/Users/AuthenticateByName?format=json";
     var params =  JSON.stringify({"Username":UserName,"Pw":Password});
 
@@ -652,7 +664,16 @@ Server.Authenticate = function(UserId, UserName, Password) {
     xmlHttp.open( "POST", url , false ); //Authenticate must be false - need response before continuing!
     xmlHttp = this.setRequestHeaders(xmlHttp);
 
-    xmlHttp.send(params);
+    try {
+        xmlHttp.send(params);
+    } catch (e) {
+        FileLog.write("Auth : Request failed for user '" + UserName + "' - " + e);
+        return false;
+    }
+
+    //Log what actually came back - the on-screen message cannot tell a rejected
+    //password from an unreachable server, which makes this impossible to debug.
+    FileLog.write("Auth : '" + UserName + "' -> HTTP " + xmlHttp.status);
 
     if (xmlHttp.status != 200) {
     	return false;

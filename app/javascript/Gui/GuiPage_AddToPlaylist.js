@@ -236,7 +236,7 @@ var GuiPage_AddToPlaylist_Input  = function(id) {
 	    ime.setKeyFunc(tvKey.KEY_ENTER, function (keyCode) {
 	        alert("Enter key pressed");    
 	        
-	        var playlist = document.getElementById("guiPlayListNew").value;
+	        var playlist = Support.trimInput(document.getElementById("guiPlayListNew").value);
 	        if (playlist == "") {
 	        	document.getElementById("guiPlayListResult").innerHTML = "<div style='padding-top:20px;padding-left:80px;'>Enter a playlist name or press Return to cancel.</div>";
 	        	setTimeout(function(){

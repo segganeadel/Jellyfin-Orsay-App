@@ -1273,6 +1273,13 @@ Support.enterMusicPage = function(musicView) {
 	}
 }
 
+// The on-screen keyboard leaves stray whitespace in input fields, which then
+// travels into usernames, host addresses and search terms and breaks them.
+Support.trimInput = function(value) {
+	if (value == null) { return ""; }
+	return String(value).replace(/^\s+|\s+$/g, "");
+}
+
 Support.parseSearchTerm = function(searchTermString) {
 	var parsedString = searchTermString.replace(/ /gi, "%20");
 	//Probably more chars to parse here!

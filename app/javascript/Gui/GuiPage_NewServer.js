@@ -103,7 +103,7 @@ var GuiPage_NewServer_Input  = function(id,previousId, nextId) {
             var IP3 = document.getElementById('3').value;
             var IP4 = document.getElementById('4').value;
             
-            var host = document.getElementById('host').value;
+            var host = Support.trimInput(document.getElementById('host').value);
             
             if (IP1 == "" || IP2 == "" || IP3 == "" || IP4 == "" ) {
             	//Check if host is empty
