@@ -187,12 +187,13 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 	//Update URL with resumeticks
 	//url += '&StartTimeTicks=' + (resumeTicksSamsung*10000);
 
-	/* DEPRECATED: Disabled HLS component as subtitles don't work properly
-	//Required for HLS streaming
+	//The Samsung player needs to be told a URL is HLS; without this it treats
+	//the .m3u8 as a plain file and fails with OnNetworkDisconnected, so every
+	//transcoded or remuxed stream refused to start. Subtitles are unaffected -
+	//the app fetches SRT separately and renders them itself.
 	if (this.PlayMethod != "DirectPlay") {
 		url += '|COMPONENT=HLS';
 	}
-	*/
 
 	//Update Server content is playing * update time
 	Server.videoStarted(this.PlayerData.Id,this.playingMediaSource.Id,this.PlayMethod,this.PlaySessionId);
@@ -884,18 +885,15 @@ GuiPlayer.newPlaybackPosition = function(startPositionTicks) {
 
 	this.setDisplaySize();
 
-	var url = this.playingURL + '&PlaySessionId=' + this.PlaySessionId;
+	var url = this.playingURL;
+	if (this.PlaySessionId) {
+		url += '&PlaySessionId=' + this.PlaySessionId;
+	}
 
-	// DEPRECATED: StartTimeTicks is not supported by Jellyfin >= 10.7.x
-	//Update URL with startPositionTicks
-	//url += '&StartTimeTicks=' + (Math.round(startPositionTicks));
-
-	/* DEPRECATED: Disabled HLS component as subtitles don't work properly
-	//Required for HLS streaming
+	//See startPlayback: the player needs the HLS marker to read an .m3u8.
 	if (this.PlayMethod != "DirectPlay") {
 		url += '|COMPONENT=HLS';
 	}
-	*/
 
 	var position = Math.round(startPositionTicks / 10000000);
     this.plugin.ResumePlay(url,position);

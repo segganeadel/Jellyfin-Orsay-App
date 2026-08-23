@@ -70,7 +70,10 @@ GuiPlayer_Transcoding.start = function(showId, MediaSource,MediaSourceIndex, vid
 	if (this.isVideo && this.isAudio && convertAACtoDolby == false) {
 		if (isFirstAudioIndex == true) {
 			transcodeStatus = "Direct Play";
-			streamparams = '/Stream.'+this.MediaSource.Container+'?static=true&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();
+			//Use the single container name that matched, not Jellyfin's full
+			//format list, or the URL becomes Stream.mov,mp4,m4a,3gp,3g2,mj2
+			var container = this.videoContainer || this.MediaSource.Container;
+			streamparams = '/Stream.'+container+'?static=true&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();
 		} else {			
 			transcodeStatus = "Stream Copy - Audio Not First Track";
 			streamparams = '/master.m3u8?VideoStreamIndex='+videoStreamIndex+'&AudioStreamIndex='+audioStreamIndex+'&VideoCodec=copy&AudioCodec='+ streamAudioCodec + '&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True' + '&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();
@@ -97,6 +100,8 @@ GuiPlayer_Transcoding.checkCodec = function() {
 	
 	this.isCodec = codecParams[0];
 	this.isContainer = this.checkContainer(codecParams[1]);
+	//Keep the video pass's match; checkAudioCodec calls checkContainer again.
+	this.videoContainer = this.matchedContainer;
 	this.isResolution = this.checkResolution(codecParams[2]);
 	this.isBitRate = this.checkBitRate(codecParams[3]);
 	this.isFrameRate = this.checkFrameRate(codecParams[4]);
@@ -167,26 +172,89 @@ GuiPlayer_Transcoding.checkResolution = function(maxResolution) {
 }
 
 GuiPlayer_Transcoding.checkContainer = function(supportedContainers) {
-	if (supportedContainers == null) {
-		return false
-	} else {
-		var isContainer = false;
+	this.matchedContainer = null;
+
+	if (supportedContainers == null || this.MediaSource.Container == null) {
+		return false;
+	}
+
+	var candidates = [];
+
+	// The player treats the extension on the URL as a demuxer hint, so try the
+	// file's real extension first where the server exposes the path.
+	var preferred = this.getSourceExtension();
+	if (preferred != null) { candidates.push(preferred); }
+
+	// Jellyfin reports Container as ffprobe's whole format list: an ordinary
+	// .mp4 arrives as "mov,mp4,m4a,3gp,3g2,mj2" and an .mkv as "matroska,webm".
+	// Comparing that string to a single name never matched, so every MP4 and
+	// MKV was needlessly transcoded. Split it, and translate the demuxer names
+	// that differ from the extension the tables are written in.
+	var reported = this.MediaSource.Container.toLowerCase().split(",");
+	for (var i = 0; i < reported.length; i++) {
+		var name = reported[i].replace(/^\s+|\s+$/g, "");
+		candidates.push(name);
+		var alias = GuiPlayer_Transcoding.CONTAINER_ALIASES[name];
+		if (alias != null) { candidates.push(alias); }
+	}
+
+	for (var r = 0; r < candidates.length; r++) {
 		for (var index = 0; index < supportedContainers.length; index++) {
-			if (this.MediaSource.Container.toLowerCase() == supportedContainers[index]) {
-				isContainer =  true;
-				break;
+			if (candidates[r] == supportedContainers[index]) {
+				//Remember which name matched - the direct play URL needs one
+				//extension, not the whole list.
+				this.matchedContainer = candidates[r];
+				return true;
 			}
 		}
-		return isContainer;
 	}
+	return false;
+}
+
+//ffprobe demuxer name -> the extension the capability tables use.
+GuiPlayer_Transcoding.CONTAINER_ALIASES = {
+	"matroska" : "mkv",
+	"mpegts"   : "ts",
+	"mpeg"     : "mpg",
+	"mpegvideo": "mpg",
+	"asf"      : "wmv",
+	"quicktime": "mov",
+	"3gp"      : "3gpp",
+	"m4a"      : "mp4",
+	"mj2"      : "mp4"
+};
+
+//Extension of the underlying file, lower case and without the dot, when the
+//server exposes the path. Returns null when it does not.
+GuiPlayer_Transcoding.getSourceExtension = function() {
+	var path = this.MediaSource.Path;
+	if (path == null) { return null; }
+
+	var dot = path.lastIndexOf(".");
+	if (dot < 0 || dot == path.length - 1) { return null; }
+	return path.substring(dot + 1).toLowerCase();
 }
 
 GuiPlayer_Transcoding.checkBitRate = function(maxBitRate) {
 	//Get Bitrate from Settings File
 	var maxBitRateSetting = File.getTVProperty("Bitrate")*1024*1024;
+	if (!(maxBitRateSetting > 0)) {
+		//Missing or non-numeric setting produced NaN, which then travelled into
+		//the transcode URL as VideoBitrate=NaN.
+		maxBitRateSetting = 20 * 1024 * 1024;
+	}
 
-    // MCB - Ignore bitrate in file
-    this.bitRateToUse = maxBitRateSetting;
+	//Never ask for more than the panel can decode, and never ask for more than
+	//the source actually is - the default 60Mbit setting had the server
+	//re-encoding a 3Mbit file at 62Mbit, which no Orsay TV can stream over WiFi.
+	this.bitRateToUse = maxBitRateSetting;
+	if (maxBitRate > 0 && maxBitRate < this.bitRateToUse) {
+		this.bitRateToUse = maxBitRate;
+	}
+	var sourceBitRate = this.MediaSource.MediaStreams[this.videoIndex].BitRate;
+	if (sourceBitRate > 0 && sourceBitRate < this.bitRateToUse) {
+		this.bitRateToUse = sourceBitRate;
+	}
 
 	if (this.MediaSource.MediaStreams[this.videoIndex].BitRate > maxBitRateSetting) {
 		return false;
