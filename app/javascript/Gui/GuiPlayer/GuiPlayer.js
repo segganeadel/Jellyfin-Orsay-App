@@ -35,7 +35,13 @@ var GuiPlayer = {
 		subtitleShowingIndex : 0,
 		subtitleSeeking : false,
 		startParams : [],
-		infoTimer : null
+		infoTimer : null,
+
+		//Read from the player once the stream is open, rather than taken from
+		//the server's description of the source file.
+		decodedWidth : null,
+		decodedHeight : null,
+		playerDuration : null
 };
 
 
@@ -130,6 +136,11 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 	this.subtitleShowingIndex = 0;
 	this.subtitleSeeking = false;
 	this.videoStartTime = resumeTicksSamsung;
+	//Measured from the stream once OnStreamInfoReady fires. Cleared here so a
+	//previous title's numbers cannot be used for this one if it never does.
+	this.decodedWidth = null;
+	this.decodedHeight = null;
+	this.playerDuration = null;
 	
 	//Expand TranscodeAlg to useful variables!!!
 	this.playingMediaSourceIndex = TranscodeAlg[0];
@@ -218,7 +229,19 @@ GuiPlayer.stopPlayback = function() {
 };
 
 GuiPlayer.setDisplaySize = function() {
-	var aspectRatio = (this.playingMediaSource.MediaStreams[this.playingVideoIndex] === undefined) ? "16:9" : this.playingMediaSource.MediaStreams[this.playingVideoIndex].AspectRatio;
+	var stream = this.playingMediaSource.MediaStreams[this.playingVideoIndex];
+	var aspectRatio = (stream === undefined) ? "16:9" : stream.AspectRatio;
+
+	//Prefer what the decoder reports once it knows. The source description is
+	//only a guess at what will arrive, and is simply wrong when the server
+	//rescaled the picture on its way out.
+	var width = this.decodedWidth;
+	var height = this.decodedHeight;
+	if (!(width > 0 && height > 0)) {
+		if (stream === undefined) { width = null; height = null; }
+		else { width = stream.Width; height = stream.Height; }
+	}
+
 	if (aspectRatio == "16:9") {
 		this.plugin.SetDisplayArea(0, 0, 960, 540);
 	} else if (aspectRatio == "4:3") {
@@ -227,25 +250,29 @@ GuiPlayer.setDisplaySize = function() {
 		var centering = Math.round((960 - newResolutionX)/2);
 
 		this.plugin.SetDisplayArea(parseInt(centering), parseInt(0), parseInt(newResolutionX), parseInt(newResolutionY));
-	} else {
-		//Scale Video	
-		var ratioToShrinkX = 960 / this.playingMediaSource.MediaStreams[this.playingVideoIndex].Width;
-		var ratioToShrinkY = 540 / this.playingMediaSource.MediaStreams[this.playingVideoIndex].Height;
-			
+	} else if (width > 0 && height > 0) {
+		//Scale Video
+		var ratioToShrinkX = 960 / width;
+		var ratioToShrinkY = 540 / height;
+
 		if (ratioToShrinkX < ratioToShrinkY) {
 			var newResolutionX = 960;
-			var newResolutionY = Math.round(this.playingMediaSource.MediaStreams[this.playingVideoIndex].Height * ratioToShrinkX);
+			var newResolutionY = Math.round(height * ratioToShrinkX);
 			var centering = Math.round((540-newResolutionY)/2);
-				
+
 			this.plugin.SetDisplayArea(parseInt(0), parseInt(centering), parseInt(newResolutionX), parseInt(newResolutionY));
 		} else {
-			var newResolutionX = Math.round(this.playingMediaSource.MediaStreams[this.playingVideoIndex].Width * ratioToShrinkY);
+			var newResolutionX = Math.round(width * ratioToShrinkY);
 			var newResolutionY = 540;
 			var centering = Math.round((960-newResolutionX)/2);
-				
+
 			this.plugin.SetDisplayArea(parseInt(centering), parseInt(0), parseInt(newResolutionX), parseInt(newResolutionY));
-		}			
-	}	
+		}
+	} else {
+		//No dimensions from either source: fill the screen rather than
+		//dereferencing a stream that is not there.
+		this.plugin.SetDisplayArea(0, 0, 960, 540);
+	}
 };
 
 GuiPlayer.setSubtitles = function(selectedSubtitleIndex) {
@@ -451,9 +478,9 @@ GuiPlayer.setCurrentTime = function(time) {
 			    this.setupThreeDConfiguration();			
 			    this.setThreeD = true;
 			}
-			percentage = (100 * this.currentTime / (this.PlayerData.RunTimeTicks / 10000));	
+			percentage = (100 * this.currentTime / this.getDurationMs());	
 			document.getElementById("guiPlayer_Info_ProgressBar_Current").style.width = percentage + "%";
-			document.getElementById("guiPlayer_Info_Time").innerHTML = Support.convertTicksToTime(this.currentTime, (this.PlayerData.RunTimeTicks / 10000));
+			document.getElementById("guiPlayer_Info_Time").innerHTML = Support.convertTicksToTime(this.currentTime, this.getDurationMs());
 			this.updateTimeCount++;
 			if (this.updateTimeCount == 8) {
 				this.updateTimeCount = 0;
@@ -515,7 +542,46 @@ GuiPlayer.onBufferingComplete = function() {
 
 GuiPlayer.OnStreamInfoReady = function() {
 	FileLog.write("Playback : Stream Info Ready");
-	document.getElementById("guiPlayer_Info_Time").innerHTML = Support.convertTicksToTime(this.currentTime, (this.PlayerData.RunTimeTicks / 10000));
+
+	//The player only has answers once this event has fired, and this is the
+	//first point at which the real stream can be measured rather than assumed
+	//from the server's description of the source file.
+	this.decodedWidth = null;
+	this.decodedHeight = null;
+	this.playerDuration = null;
+
+	try {
+		var w = this.plugin.GetVideoWidth();
+		var h = this.plugin.GetVideoHeight();
+		if (w > 0 && h > 0) { this.decodedWidth = w; this.decodedHeight = h; }
+	} catch (e) {
+		FileLog.write("Playback : could not read the video size - " + e);
+	}
+
+	try {
+		var d = this.plugin.GetDuration();
+		if (d > 0) { this.playerDuration = d; }
+	} catch (e) {
+		FileLog.write("Playback : could not read the duration - " + e);
+	}
+
+	FileLog.write("Playback : decoded " + this.decodedWidth + "x" + this.decodedHeight +
+	              ", duration " + this.playerDuration + "ms");
+
+	//The picture was sized from the source file before playback began, so a
+	//stream the server rescaled was letterboxed against the wrong dimensions.
+	if (this.decodedWidth != null) {
+		this.setDisplaySize();
+	}
+
+	document.getElementById("guiPlayer_Info_Time").innerHTML = Support.convertTicksToTime(this.currentTime, this.getDurationMs());
+};
+
+//Length of what is actually playing. The player knows better than the source
+//metadata, which is wrong whenever the server delivered something else.
+GuiPlayer.getDurationMs = function() {
+	if (this.playerDuration > 0) { return this.playerDuration; }
+	return this.PlayerData.RunTimeTicks / 10000;
 };
 
 GuiPlayer.clearGuiItems = function() {
@@ -877,7 +943,7 @@ GuiPlayer.checkTranscodeCanSkip = function(newtime) {
 	var transcodeProgress = this.getTranscodeProgress();
 	if (transcodeProgress == null) { return false; } //Progress unknown - don't claim we can skip.
 
-	var transcodePosition = (transcodeProgress / 100) * ((this.PlayerData.RunTimeTicks / 10000) - this.offsetSeconds);
+	var transcodePosition = (transcodeProgress / 100) * (this.getDurationMs() - this.offsetSeconds);
 	if ((newtime > this.offsetSeconds) && newtime < transcodePosition) {
 		return true;
 	} else {
