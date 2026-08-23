@@ -242,7 +242,13 @@ Main.onLoad = function()
 
 Main.initKeys = function() {
 	pluginAPI.registKey(tvKey.KEY_TOOLS);
-	pluginAPI.registKey(tvKey.KEY_3D); 
+	pluginAPI.registKey(tvKey.KEY_3D);
+	//Every screen with a text field builds an IMEShell, but the keys it needs
+	//were only registered on the add-server page. Reaching login directly -
+	//which is what happens once a server is saved and the app auto-connects -
+	//left the on-screen keyboard without its remote keys. Register once here
+	//so it works wherever the keyboard is opened.
+	pluginAPI.registIMEKey();
 	FileLog.write("Key handlers initialised.");
 };
 
@@ -256,4 +262,5 @@ Main.onUnload = function()
 	GuiPlayer.stopOnAppExit();
 	pluginAPI.unregistKey(tvKey.KEY_TOOLS);
 	pluginAPI.unregistKey(tvKey.KEY_3D);
+	pluginAPI.unregistIMEKey();
 };

@@ -28,7 +28,7 @@ GuiPage_NewServer.start = function() {
 
 	//Prepare all input elements for IME
 	GuiPage_NewServer.createInputObjects();
-	pluginAPI.registIMEKey();
+	//IME keys are registered once for the whole app in Main.initKeys.
 }
 
 //Prepare all input elements for IME on Load!
