@@ -38,9 +38,10 @@ GuiPlayer_DeviceProfile.LIMITS = {
 		containers : GuiPlayer_DeviceProfile.CONTAINERS_MODERN,
 		videoCodecs : "h264,mpeg4,msmpeg4v3,mpeg2video,vc1,wmv2,wmv3"
 	},
-	//F-series height is 1088, not 1080, matching the original table.
+	//F-series accepts h264 padded to 1088 - h264 codes in 16 pixel rows, so
+	//1080 becomes 1088 - while the older codecs stop at 1080.
 	"F" : {
-		width : 1920, height : 1088, level : 41, framerate : 30,
+		width : 1920, height : 1080, h264Height : 1088, level : 41, framerate : 30,
 		bitrate : 30720000, hevc : null,
 		containers : GuiPlayer_DeviceProfile.CONTAINERS_MODERN,
 		videoCodecs : "h264,mpeg4,msmpeg4v3,mpeg2video,vc1,wmv2,wmv3"
@@ -116,6 +117,8 @@ GuiPlayer_DeviceProfile.build = function() {
 		}
 	}
 
+	var h264Height = limits.h264Height ? limits.h264Height : limits.height;
+
 	var codecProfiles = [
 		{
 			"Type" : "Video",
@@ -124,7 +127,7 @@ GuiPlayer_DeviceProfile.build = function() {
 				{ "Condition":"EqualsAny",     "Property":"VideoProfile",   "Value":"baseline|constrained baseline|main|high", "IsRequired":false },
 				{ "Condition":"LessThanEqual", "Property":"VideoLevel",     "Value":"" + limits.level, "IsRequired":false },
 				{ "Condition":"LessThanEqual", "Property":"Width",          "Value":"" + limits.width, "IsRequired":true },
-				{ "Condition":"LessThanEqual", "Property":"Height",         "Value":"" + limits.height, "IsRequired":true },
+				{ "Condition":"LessThanEqual", "Property":"Height",         "Value":"" + h264Height, "IsRequired":true },
 				{ "Condition":"LessThanEqual", "Property":"VideoBitDepth",  "Value":"8", "IsRequired":false },
 				{ "Condition":"LessThanEqual", "Property":"VideoFramerate", "Value":"" + limits.framerate, "IsRequired":false },
 				{ "Condition":"LessThanEqual", "Property":"VideoBitrate",   "Value":"" + limits.bitrate, "IsRequired":false }
@@ -247,6 +250,71 @@ GuiPlayer_DeviceProfile.build = function() {
 			{ "Format":"vtt",    "Method":"Encode" }
 		]
 	};
+};
+
+//----------------------------------------------------------------------------
+//  Local capability lookups.
+//
+//  The fallback path in GuiPlayer_Transcoding, used when the server cannot
+//  negotiate, needs the same limits in the shape its checks expect. Deriving
+//  them here keeps one description of the hardware rather than two that drift
+//  apart - the previous second copy had HEVC on H-series at level 5.1 when the
+//  panel stops at 4.0.
+//----------------------------------------------------------------------------
+
+GuiPlayer_DeviceProfile.listContains = function(list, value) {
+	var parts = list.split(",");
+	for (var i = 0; i < parts.length; i++) {
+		if (parts[i] == value) { return true; }
+	}
+	return false;
+};
+
+//Mirrors the old getParameters:
+//[supported, containers[], [w,h], bitrate, framerate, level, profiles]
+GuiPlayer_DeviceProfile.getVideoLimits = function(codec) {
+	var limits = this.getLimits();
+	var containers = limits.containers.split(",");
+
+	if (codec == "hevc" || codec == "h265") {
+		if (limits.hevc == null) { return [null, null, null, limits.bitrate, null, null, null]; }
+		return [true, containers, [limits.width, limits.height], limits.bitrate,
+		        limits.framerate, limits.hevc, true];
+	}
+
+	if (!this.listContains(limits.videoCodecs, codec)) {
+		//Unknown to this panel: every check fails and the file is transcoded.
+		return [null, null, null, limits.bitrate, null, null, null];
+	}
+
+	if (codec == "h264") {
+		var h264Height = limits.h264Height ? limits.h264Height : limits.height;
+		return [true, containers, [limits.width, h264Height], limits.bitrate,
+		        limits.framerate, limits.level,
+		        ["Base","Constrained Baseline","Baseline","Main","High"]];
+	}
+
+	//The older codecs carry no level or profile constraint worth checking.
+	return [true, containers, [limits.width, limits.height], limits.bitrate,
+	        limits.framerate, true, true];
+};
+
+//Mirrors the old getAudioParameters: [supported, containers[], maxChannels]
+GuiPlayer_DeviceProfile.getAudioLimits = function(audioCodec) {
+	var limits = this.getLimits();
+	var containers = limits.containers.split(",");
+
+	if (!this.listContains(this.AUDIO_CODECS, audioCodec)) {
+		return [false, null, null];
+	}
+
+	//PCM is two channel only. DTS carries eight, except on the 2011 sets which
+	//stop at six. Everything else is six.
+	if (audioCodec.indexOf("pcm") === 0) { return [true, containers, 2]; }
+	if (audioCodec == "dts" || audioCodec == "dca") {
+		return [true, containers, (Main.getModelYear() == "D") ? 6 : 8];
+	}
+	return [true, containers, 6];
 };
 
 //Turn one negotiated media source into the URL to hand the player.

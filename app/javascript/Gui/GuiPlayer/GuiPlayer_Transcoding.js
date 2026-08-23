@@ -96,7 +96,7 @@ GuiPlayer_Transcoding.start = function(showId, MediaSource,MediaSourceIndex, vid
 
 GuiPlayer_Transcoding.checkCodec = function() {
 	var codec = this.MediaSource.MediaStreams[this.videoIndex].Codec.toLowerCase();
-	var codecParams = GuiPlayer_TranscodeParams.getParameters(codec,this.MediaSource.MediaStreams[this.videoIndex].Width);
+	var codecParams = GuiPlayer_DeviceProfile.getVideoLimits(codec);
 	
 	this.isCodec = codecParams[0];
 	this.isContainer = this.checkContainer(codecParams[1]);
@@ -129,7 +129,7 @@ GuiPlayer_Transcoding.checkCodec = function() {
 
 GuiPlayer_Transcoding.checkAudioCodec = function() {
 	var audiocodec = this.MediaSource.MediaStreams[this.audioIndex].Codec.toLowerCase();
-	var audiocodecParams = GuiPlayer_TranscodeParams.getAudioParameters(audiocodec);
+	var audiocodecParams = GuiPlayer_DeviceProfile.getAudioLimits(audiocodec);
 	
 	this.isAudioCodec = audiocodecParams[0];
 	this.isAudioContainer = this.checkContainer(audiocodecParams[1]);
