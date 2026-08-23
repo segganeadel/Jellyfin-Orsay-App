@@ -10,7 +10,7 @@ var GuiPage_SettingsLog = {
 }
 
 GuiPage_SettingsLog.onFocus = function() {
-	GuiHelper.setControlButtons("Clear Log","Send Log to PC",null,GuiMusicPlayer.Status == "PLAYING" || GuiMusicPlayer.Status == "PAUSED" ? "Music" : null,"Return");
+	GuiHelper.setControlButtons("Clear Log","Send Log to PC","Keyboard Test",GuiMusicPlayer.Status == "PLAYING" || GuiMusicPlayer.Status == "PAUSED" ? "Music" : null,"Return");
 }
 
 GuiPage_SettingsLog.getMaxDisplay = function() {
@@ -152,6 +152,9 @@ GuiPage_SettingsLog.keyDown = function() {
 			} else {
 				GuiNotifications.setNotification("No collector answered at " + host + " on port 80.","Send Failed");
 			}
+			break;
+		case tvKey.KEY_YELLOW:
+			GuiPage_KeyboardTest.start();
 			break;
 		case tvKey.KEY_BLUE:
 			GuiMusicPlayer.showMusicPlayer("GuiPage_SettingsLog","bannerItem"+this.selectedBannerItem,"bannerItem bannerItemPadding highlight"+Main.highlightColour+"Text");
