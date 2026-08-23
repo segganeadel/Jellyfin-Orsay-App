@@ -38,6 +38,56 @@ Main.getModelYear = function() {
 	return this.modelYear;
 };
 
+//---------------------------------------------------------------------------
+//  Audio hardware
+//
+//  Whether Dolby or DTS can be passed through is a property of the set and
+//  whatever is plugged into it, not something the user should have to know.
+//  These are asked once at startup; the answers refine the manual settings
+//  rather than replace them, because the plugin returns a negative value when
+//  it cannot answer and that must not read as "unsupported".
+//---------------------------------------------------------------------------
+
+//PL_AUDIO_OUTPUT_DEVICE: 0 main speaker, 1 earphone, 2 subwoofer,
+//3 external (component/composite), 4 receiver (HDMI/SPDIF).
+Main.probeAudioCapabilities = function() {
+	var pluginAudio = document.getElementById("pluginObjectAudio");
+	this.audioOutputDevice = null;
+	this.audioDolby = null;
+	this.audioDTS = null;
+
+	if (pluginAudio == null) { return; }
+
+	try { this.audioOutputDevice = pluginAudio.GetOutputDevice(); } catch (e) {}
+	try { this.audioDolby = pluginAudio.CheckExternalOutMode(1); } catch (e) {}
+	try { this.audioDTS = pluginAudio.CheckExternalOutMode(2); } catch (e) {}
+
+	FileLog.write("Audio : output device " + this.audioOutputDevice +
+	              " (4 = receiver), dolby " + this.audioDolby + ", dts " + this.audioDTS);
+};
+
+//True only when we positively know sound leaves over HDMI or SPDIF. Anything
+//else, including "could not tell", is treated as not knowing.
+Main.hasReceiver = function() {
+	return this.audioOutputDevice === 4;
+};
+
+//A positive result is the hardware saying yes. Zero means no. Anything else -
+//negative, null, never asked - means it could not tell, so defer to the user.
+Main.canPassThrough = function(probed, userSetting) {
+	if (probed > 0) { return true; }
+	if (probed === 0) { return false; }
+	return userSetting == true;
+};
+
+Main.supportsDolby = function() {
+	return this.canPassThrough(this.audioDolby, File.getTVProperty("Dolby"));
+};
+
+Main.supportsDTS = function() {
+	return this.canPassThrough(this.audioDTS, File.getTVProperty("DTS"));
+};
+
 Main.isMusicEnabled = function() {
 	return this.enableMusic;
 };
@@ -110,6 +160,7 @@ Main.onLoad = function()
 	var pluginNetwork = document.getElementById("pluginObjectNetwork");
 	var pluginTV = document.getElementById("pluginObjectTV");
 	FileLog.write("Plugins initialised.");
+	Main.probeAudioCapabilities();
 
 	//GetActiveType reports the interface in use: 1 wired, 0 wireless, -1 none.
 	var interfaceType = pluginNetwork.GetActiveType();

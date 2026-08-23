@@ -829,36 +829,33 @@ GuiPlayer.setupAudioConfiguration = function() {
 		codec = "ac3";
 	}
 
-	switch (codec) {
-	case "dca":
-		if (File.getTVProperty("DTS")){
-			var checkAudioOutModeDTS = this.pluginAudio.CheckExternalOutMode(2);
-			if (checkAudioOutModeDTS > 0) {
-				this.pluginAudio.SetExternalOutMode(2);
-			} else {
-				this.pluginAudio.SetExternalOutMode(0);
-			}
-			
-		} else {
-			this.pluginAudio.SetExternalOutMode(0);
+	//Passing a bitstream out only makes sense when something downstream can
+	//decode it. With no receiver attached the sound has to be PCM, whatever the
+	//settings say - switching to Dolby or DTS in that case produced silence.
+	if (this.pluginAudio == null) { return; }
+
+	var mode = 0; //PCM
+	if (Main.hasReceiver() || Main.audioOutputDevice == null) {
+		if (codec == "dca" || codec == "dts") {
+			if (File.getTVProperty("DTS") && Main.supportsDTS()) { mode = 2; }
+		} else if (codec == "ac3" || codec == "eac3") {
+			if (File.getTVProperty("Dolby") && Main.supportsDolby()) { mode = 1; }
 		}
-		break;	
-	case "ac3":
-		if (File.getTVProperty("Dolby")) {
-			var checkAudioOutModeDolby = this.pluginAudio.CheckExternalOutMode(1);
-			if (checkAudioOutModeDolby > 0) {
-				this.pluginAudio.SetExternalOutMode(1);
-			} else {
-				this.pluginAudio.SetExternalOutMode(0);
-			}	
-		}else {
-			this.pluginAudio.SetExternalOutMode(0);
-		}
-		break;
-	default:
-		this.pluginAudio.SetExternalOutMode(0);
-		break;
 	}
+
+	//Ask before setting, as the guide's examples do; a mode the path cannot
+	//carry is refused and we would be left with no sound.
+	if (mode != 0) {
+		var allowed = -1;
+		try { allowed = this.pluginAudio.CheckExternalOutMode(mode); } catch (e) { allowed = -1; }
+		if (!(allowed > 0)) {
+			FileLog.write("Audio : output mode " + mode + " refused, falling back to PCM");
+			mode = 0;
+		}
+	}
+
+	FileLog.write("Audio : " + codec + " -> output mode " + mode + " (0 PCM, 1 Dolby, 2 DTS)");
+	this.pluginAudio.SetExternalOutMode(mode);
 };
 
 GuiPlayer.getTranscodeProgress = function() {

@@ -100,13 +100,17 @@ GuiPlayer_DeviceProfile.build = function() {
 	var directAudio = this.AUDIO_CODECS;
 	var transcodeAudio = "aac";
 
-	//The Dolby and DTS settings describe what the attached receiver can decode.
-	//Expressing them in the profile lets the server strip the audio it knows we
-	//cannot play, instead of the client rewriting the URL afterwards.
-	if (!File.getTVProperty("DTS")) {
+	//Whether a bitstream can be passed through depends on the settings and on
+	//what the hardware reports; both have to agree. Expressing that in the
+	//profile lets the server strip audio we cannot play, instead of the client
+	//rewriting the URL afterwards.
+	var dtsOk   = File.getTVProperty("DTS")   && Main.supportsDTS();
+	var dolbyOk = File.getTVProperty("Dolby") && Main.supportsDolby();
+
+	if (!dtsOk) {
 		directAudio = this.without(directAudio, ["dts", "dca"]);
 	}
-	if (!File.getTVProperty("Dolby")) {
+	if (!dolbyOk) {
 		directAudio = this.without(directAudio, ["ac3", "eac3"]);
 	} else {
 		transcodeAudio = "aac,ac3";
