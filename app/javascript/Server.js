@@ -19,6 +19,35 @@ Server.getServerAddr = function() {
 	return this.serverAddr;
 }
 
+// Jellyfin keys a session on DeviceId, so two TVs reporting the same id share
+// one session: their progress overwrites each other's and stopping playback on
+// one kills the other's transcode. Deriving the id from the MAC gave every set
+// that fell back to the placeholder MAC an identical id, so generate a random
+// id once per installation and keep it in the settings file instead.
+Server.ensureDeviceID = function(seed) {
+	var stored = File.getTVProperty("DeviceId");
+	if (stored && stored.length == 32) {
+		this.DeviceID = stored;
+		return;
+	}
+
+	var id;
+	if (seed && seed.length >= 32) {
+		id = seed.substring(0, 32); //Keep an existing install's identity on upgrade.
+	} else {
+		var hex = "0123456789abcdef";
+		id = "";
+		for (var i = 0; i < 24; i++) {
+			id += hex.charAt(Math.floor(Math.random() * 16));
+		}
+		//Mix in the clock so two sets booting together cannot land on the same id.
+		id += ("00000000" + (new Date().getTime() % 0xffffffff).toString(16)).slice(-8);
+	}
+
+	this.DeviceID = id;
+	File.setTVProperty("DeviceId", id);
+}
+
 Server.setServerAddr = function(serverAddr) {
 	this.serverAddr = serverAddr;
 }

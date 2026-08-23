@@ -111,14 +111,23 @@ Main.onLoad = function()
 	var pluginTV = document.getElementById("pluginObjectTV");
 	FileLog.write("Plugins initialised.");
 
-	var ProductType = pluginNetwork.GetActiveType();
-	FileLog.write("Product type is "+ProductType);
-	var phyConnection = pluginNetwork.CheckPhysicalConnection(ProductType); //returns -1
-	FileLog.write("Check physical connection returned "+phyConnection);
-	var http = pluginNetwork.CheckHTTP(ProductType); //returns -1
-	FileLog.write("Check HTTP returned "+http);
-	var gateway = pluginNetwork.CheckGateway(ProductType); //returns -1
-	FileLog.write("Check gateway returned "+gateway);
+	//GetActiveType reports the interface in use: 1 wired, 0 wireless, -1 none.
+	var interfaceType = pluginNetwork.GetActiveType();
+	FileLog.write("Active network interface is "+interfaceType+" (1=wired, 0=wireless)");
+
+	//These return 1 connected / 0 not connected / -1 on error. -1 is truthy in JS,
+	//so testing them directly treated an error as success - compare explicitly.
+	var phyConnection = 0, http = 0, gateway = 0;
+	if (interfaceType == 1 || interfaceType == 0) {
+		phyConnection = pluginNetwork.CheckPhysicalConnection(interfaceType);
+		FileLog.write("Check physical connection returned "+phyConnection);
+		http = pluginNetwork.CheckHTTP(interfaceType);
+		FileLog.write("Check HTTP returned "+http);
+		gateway = pluginNetwork.CheckGateway(interfaceType);
+		FileLog.write("Check gateway returned "+gateway);
+	} else {
+		FileLog.write("No active network interface reported.");
+	}
 	
 	//Get the model year - Used for transcoding
 	if (pluginTV.GetProductCode(0).substring(0,2) == "HT" || pluginTV.GetProductCode(0).substring(0,2) == "BD"){
@@ -149,17 +158,18 @@ Main.onLoad = function()
 	}
 	FileLog.write("Model Year is " + this.modelYear);
 	
-	if (phyConnection && http && gateway) {
-		var MAC = pluginNetwork.GetMAC(1);
-		if (MAC == false || MAC == null) { //Set mac to fake	
-			MAC = "0123456789ab" ;
+	if (phyConnection == 1 && http == 1 && gateway == 1) {
+		//Ask for the MAC of the interface actually in use - GetMAC(1) is the
+		//wired NIC, which returns nothing on a Wi-Fi only set.
+		var MAC = pluginNetwork.GetMAC(interfaceType);
+		if (MAC == false || MAC == null) {
+			MAC = null;
 		}
 		FileLog.write("MAC address is "+MAC);
 		Server.setDevice ("Samsung " + pluginTV.GetProductCode(0));
-		Server.setDeviceID(NNaviPlugin.GetDUID(MAC));
-		
+
 	    //Load Settings File - Check if file needs to be deleted due to development
-	    var fileJson = JSON.parse(File.loadFile()); 
+	    var fileJson = JSON.parse(File.loadFile());
 	    var version = File.checkVersion(fileJson);
 	    if (version == "Undefined" ) {
 	    	//Delete Settings file and reload
@@ -175,9 +185,15 @@ Main.onLoad = function()
 	    		fileJson.Version = this.version;
 	    	} 	File.writeAll(fileJson);
 	    }
-	    
+
+	    //Needs the settings file, so it has to come after the load above.
+	    //Seed from the DUID when we have a real MAC so an existing install keeps
+	    //its identity; otherwise a random per-install id is generated.
+	    Server.ensureDeviceID(MAC ? NNaviPlugin.GetDUID(MAC) : null);
+	    FileLog.write("Device ID is "+Server.getDeviceID());
+
 	    //Allow Evo Kit owners to override the model year.
-	    if (fileJson.TV.ModelOverride != "None") {
+	    if (fileJson.TV !== undefined && fileJson.TV.ModelOverride !== undefined && fileJson.TV.ModelOverride != "None") {
 	    	switch(fileJson.TV.ModelOverride){
 	    	case "SEK1000":
 	    		this.modelYear = "F";
@@ -232,8 +248,8 @@ Main.initKeys = function() {
 
 Main.onUnload = function()
 {
-	//Write Cache to disk
-	ImageCache.writeAll(Support.imageCachejson);
+	// The image cache holds blob: URLs that are only valid for this page
+	// session, so there is nothing worth persisting here.
 	Support.screensaverOff();
 	GuiImagePlayer.kill();
 	GuiMusicPlayer.stopOnAppExit();
