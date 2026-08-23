@@ -140,10 +140,13 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 	this.playingAudioIndex = TranscodeAlg[4];
 	this.playingSubtitleIndex = TranscodeAlg[5];
 	
-	//Set PlayMethod
+	//Set PlayMethod. Jellyfin only accepts DirectPlay/DirectStream/Transcode here,
+	//and rejects the whole playback report if the value is empty - which silently
+	//cost us the resume point on every audio-transcoded title. Everything that is
+	//not a straight direct play goes through the transcoder, so report Transcode.
 	if (this.playingTranscodeStatus == "Direct Play"){
 		this.PlayMethod = "DirectPlay";
-	} else if (this.playingTranscodeStatus == "Transcoding Audio & Video"){
+	} else {
 		this.PlayMethod = "Transcode";
 	}
 
@@ -165,12 +168,21 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 	//Create Tools Menu
 	GuiPlayer_Display.createToolsMenu();
 	
-	//Fetch PlaySessionId
-	var playbackInfo = Server.getPlaybackInfo(this.PlayerData.Id);
+	//Reuse the session GuiPlayer_Versions already opened. Asking for PlaybackInfo
+	//again mints a second PlaySessionId server-side that nothing ever stops, so
+	//the first one lingers until the server's idle reaper clears it.
+	var playbackInfo = GuiPlayer_Versions.playbackInfo;
+	if (playbackInfo == null) {
+		playbackInfo = Server.getPlaybackInfo(this.PlayerData.Id);
+	}
 	this.PlaySessionId = playbackInfo ? playbackInfo.PlaySessionId : null;
 
-	var url = this.playingURL + '&PlaySessionId=' + this.PlaySessionId;
-	
+	//Appending a null id would report progress against a session that does not exist.
+	var url = this.playingURL;
+	if (this.PlaySessionId) {
+		url += '&PlaySessionId=' + this.PlaySessionId;
+	}
+
 	// DEPRECATED: StartTimeTicks is not supported by Jellyfin >= 10.7.x
 	//Update URL with resumeticks
 	//url += '&StartTimeTicks=' + (resumeTicksSamsung*10000);
@@ -197,8 +209,9 @@ GuiPlayer.stopPlayback = function() {
 	this.Status = "STOPPED";
 	Server.videoStopped(this.PlayerData.Id,this.playingMediaSource.Id,this.currentTime,this.PlayMethod,this.PlaySessionId);
 	
-	//If D series need to stop HLS Encoding
-	if (Main.getModelYear() == "D") {
+	//Tell the server to tear down the encode. This was gated to D-series, which
+	//left every other model relying on the stop report alone to reap ffmpeg.
+	if (this.PlayMethod != "DirectPlay") {
 		Server.stopHLSTranscode(this.PlaySessionId);
 	}
 };
@@ -333,7 +346,7 @@ GuiPlayer.handleOnRenderingComplete = function() {
 			this.AdjacentData = Server.getContent(Server.getAdjacentEpisodesURL(this.PlayerData.SeriesId,this.PlayerData.SeasonId,this.PlayerData.Id));
 			if (this.AdjacentData == null) { return; }
 			
-			if (this.AdjacentData.Items.length == 2 && (this.AdjacentData.Items[1].IndexNumber > this.ItemData.IndexNumber)) {
+			if (this.AdjacentData.Items.length == 2 && (this.AdjacentData.Items[1].IndexNumber > this.PlayerData.IndexNumber)) {
 				var url = Server.getItemInfoURL(this.AdjacentData.Items[1].Id);
 				//Take focus to no input
 				document.getElementById("NoKeyInput").focus();
@@ -853,7 +866,10 @@ GuiPlayer.getTranscodeProgress = function() {
     return null;  
 };
 
-GuiPlayer.checkTranscodeCanSkip = function(newtime) {	
+GuiPlayer.checkTranscodeCanSkip = function(newtime) {
+	var transcodeProgress = this.getTranscodeProgress();
+	if (transcodeProgress == null) { return false; } //Progress unknown - don't claim we can skip.
+
 	var transcodePosition = (transcodeProgress / 100) * ((this.PlayerData.RunTimeTicks / 10000) - this.offsetSeconds);
 	if ((newtime > this.offsetSeconds) && newtime < transcodePosition) {
 		return true;

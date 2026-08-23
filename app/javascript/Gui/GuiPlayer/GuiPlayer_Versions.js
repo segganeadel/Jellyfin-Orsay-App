@@ -36,7 +36,14 @@ GuiPlayer_Versions.start = function(playerData,resumeTicks,playedFromPage) {
 	this.playbackInfo = Server.getPlaybackInfo(this.PlayerData.Id);
 
 	FileLog.write("Video : Loading " + this.PlayerData.Name);
-	
+
+	if (this.playbackInfo == null || this.playbackInfo.MediaSources == null || this.playbackInfo.MediaSources.length == 0) {
+		FileLog.write("Video : No playback info returned by the server");
+		GuiNotifications.setNotification("The server did not return any playable media for this item.","Cannot Play");
+		Support.processReturnURLHistory();
+		return;
+	}
+
 	//Check if HTTP
 	if (this.playbackInfo.MediaSources[0].Protocol.toLowerCase() == "http") {
 		FileLog.write("Video : Is HTTP : Generate URL Directly");	
@@ -121,10 +128,15 @@ GuiPlayer_Versions.start = function(playerData,resumeTicks,playedFromPage) {
 				document.getElementById("GuiPlayer_Versions").focus();
 				this.updateDisplayedItems();
 				this.updateSelectedItems();
-			} else {	
-				//Just use 1st Source and give up!
+			} else if (this.MediaPlayback.length > 0) {
+				//Nothing matched, so fall back to the first source we built.
+				//(MediaSelections is empty here - reading [0] off it played "undefined".)
 				FileLog.write("Video : None Audio Only Transcode - Use First Media Source - Player Started")
-				GuiPlayer.startPlayback(this.MediaSelections[0],resumeTicks);
+				GuiPlayer.startPlayback(this.MediaPlayback[0],resumeTicks);
+			} else {
+				FileLog.write("Video : No playable media source found")
+				GuiNotifications.setNotification("None of the versions of this item can be played on this TV.","Cannot Play");
+				Support.processReturnURLHistory();
 			}
 		}
 	}
