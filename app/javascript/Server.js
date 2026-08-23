@@ -144,6 +144,69 @@ Server.getPlaybackInfo = function(itemId) {
 	return Server.getContent(url);
 }
 
+// Ask the server how to play an item, telling it what this panel can decode.
+// The reply marks each source direct playable or supplies a transcode URL, so
+// the decision is made against the real file rather than guessed from a table.
+// Returns null on any failure, and the caller falls back to deciding locally.
+Server.postPlaybackInfo = function(itemId, opts) {
+	opts = opts || {};
+
+	var url = this.getServerAddr() + "/Items/" + itemId +
+	          "/PlaybackInfo?userId=" + encodeURIComponent(this.getUserID());
+
+	var body = {
+		"UserId" : this.getUserID(),
+		"DeviceProfile" : GuiPlayer_DeviceProfile.build(),
+		"MaxStreamingBitrate" : GuiPlayer_DeviceProfile.getMaxBitrate(),
+		"StartTimeTicks" : opts.startTimeTicks || 0,
+		"AutoOpenLiveStream" : true,
+		"EnableDirectPlay" : true,
+		"EnableDirectStream" : true,
+		"EnableTranscoding" : true,
+		"AllowVideoStreamCopy" : true,
+		"AllowAudioStreamCopy" : true
+	};
+	if (opts.mediaSourceId) { body.MediaSourceId = opts.mediaSourceId; }
+	if (opts.audioStreamIndex != null) { body.AudioStreamIndex = opts.audioStreamIndex; }
+	if (opts.subtitleStreamIndex != null) { body.SubtitleStreamIndex = opts.subtitleStreamIndex; }
+
+	var xmlHttp = new XMLHttpRequest();
+	if (!xmlHttp) { return null; }
+
+	try {
+		xmlHttp.open("POST", url, false); //Sync: the answer is needed before playback can start.
+		xmlHttp = this.setRequestHeaders(xmlHttp);
+		xmlHttp.send(JSON.stringify(body));
+	} catch (e) {
+		FileLog.write("PlaybackInfo : POST failed - " + e);
+		return null;
+	}
+
+	if (xmlHttp.status != 200) {
+		FileLog.write("PlaybackInfo : POST returned HTTP " + xmlHttp.status);
+		return null;
+	}
+
+	var parsed = Server.parseResponse(xmlHttp.responseText);
+	if (parsed == null || parsed.MediaSources == null || parsed.MediaSources.length == 0) {
+		FileLog.write("PlaybackInfo : POST returned no media sources");
+		return null;
+	}
+	return parsed;
+}
+
+// Live TV holds a tuner open until the stream is closed explicitly.
+Server.closeLiveStream = function(liveStreamId) {
+	if (!liveStreamId) { return; }
+	var url = this.serverAddr + "/LiveStreams/Close?liveStreamId=" + encodeURIComponent(liveStreamId);
+	var xmlHttp = new XMLHttpRequest();
+	if (xmlHttp) {
+		xmlHttp.open("POST", url, true);
+		xmlHttp = this.setRequestHeaders(xmlHttp);
+		xmlHttp.send(null);
+	}
+}
+
 Server.getItemInfoURL = function(ParentID, SortParams) {
 	if (SortParams != null){
 		return  Server.getServerAddr() + "/Users/" + Server.getUserID() + "/Items/"+ParentID+"?format=json" + SortParams;

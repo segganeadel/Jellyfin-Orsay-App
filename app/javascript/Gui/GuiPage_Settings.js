@@ -25,9 +25,9 @@ var GuiPage_Settings = {
 		SettingsName : ["Default User: ","Highlight Colour: ","Continue Watching: ","Home View 1: ","Home View 2: ","Show Larger Icons: ", "Play Audio Themes: ", "Default Music View: ", "Skip Music A-Z: ", "Skip TV Show Page: ","Use Alternate Season Label: ","Auto Play Next Episode: ","Enable cinema mode: ","Show Disc Art: ","Subtitle Text Size: ","Subtitle Text Colour: ","Image Player Rotate Speed: ", "Screensaver Image Source: ", "Screensaver Timeout: ", "Screensaver Rotate Speed: ", "Forget Password at Log Out:"],
 		SettingsDefaults : [false,1,true,"ddddd","aaaaa",false,false,"Album",false,false,false,false,true,true,"50px","white",10000,"Media",300000,10000,false],
 		
-		TVSettings : ["Bitrate","Dolby","DTS","AACtoDolby","ItemPaging","ClockOffset","ModelOverride"],
-		TVSettingsName : ["Max Bitrate: ","Enable Dolby Digital Playback: ","Enable DTS Playback: ","Enable AAC Transcoding to Dolby: ","Item Paging: ","Clock Offset: ","Evolution Kit: "],
-		TVSettingsDefaults : [60,false,false,false,150,0,"None"],
+		TVSettings : ["Bitrate","Dolby","DTS","AACtoDolby","ServerNegotiation","ItemPaging","ClockOffset","ModelOverride"],
+		TVSettingsName : ["Max Bitrate: ","Enable Dolby Digital Playback: ","Enable DTS Playback: ","Enable AAC Transcoding to Dolby: ","Let Server Choose Playback: ","Item Paging: ","Clock Offset: ","Evolution Kit: "],
+		TVSettingsDefaults : [60,false,false,false,true,150,0,"None"],
 		
 		ServerSettings : ["DisplayMissingEpisodes","DisplayUnairedEpisodes","GroupMovieCollections","DefaultAudioLang","PlayDefaultAudioTrack","DefaultSubtitleLang", "SubtitleMode", "HidePlayedInLatest"],
 		ServerSettingsName : ["Display Missing Episodes: ", "Display Unaired Episodes: ","Group Movies into Collections: ","Default Audio Language: ","Play default audio track regardless of language: ", "Default Subtitle Language: ","Subtitle Mode:","Hide watched content from latest media:"], 
@@ -331,6 +331,7 @@ GuiPage_Settings.updateDisplayedItems = function() {
 		case "Dolby":
 		case "DTS":	
 		case "AACtoDolby":	
+		case "ServerNegotiation":
 			for (var index2 = 0; index2 < this.DefaultValues.length; index2++) {
 				if (this.DefaultValues[index2] == this.AllData.TV[this.currentViewSettings[index]]) {
 					Setting = this.DefaultOptions[index2];
@@ -543,6 +544,7 @@ GuiPage_Settings.processSelectedItem = function() {
 		case "PlayDefaultAudioTrack":
 		case "ShowDisc":	
 		case "AACtoDolby":	
+		case "ServerNegotiation":
 		case "LargerView":
 		case "ForgetSavedPassword":
 		case "HidePlayedInLatest":
@@ -867,6 +869,7 @@ GuiPage_Settings.processSelectedSubItem = function() {
 	case "Dolby":
 	case "DTS":
 	case "AACtoDolby":	
+	case "ServerNegotiation":
 		this.AllData.TV[this.currentViewSettings[this.selectedItem]] = this.DefaultValues[this.selectedSubItem];
 		this.CurrentSettingValue = this.DefaultOptions[this.selectedSubItem];
 		break;
@@ -1144,9 +1147,13 @@ GuiPage_Settings.setOverview = function() {
 			document.getElementById("guiPage_Settings_Overview_Title").innerHTML = "Enable DTS Playback";
 			document.getElementById("guiPage_Settings_Overview_Content").innerHTML = "Select this option if your receiver is capable of decoding DTS streams";
 			break;
-		case "AACtoDolby":	
+		case "AACtoDolby":
 			document.getElementById("guiPage_Settings_Overview_Title").innerHTML = "Enable AAC Transcoding to Dolby";
 			document.getElementById("guiPage_Settings_Overview_Content").innerHTML = "Set this option only if you have an external receiver capable of receiving Dolby but not AAC<br><br>Will be ignored if Enable Dolby Digital Playback is false";
+			break;
+		case "ServerNegotiation":
+			document.getElementById("guiPage_Settings_Overview_Title").innerHTML = "Let Server Choose Playback";
+			document.getElementById("guiPage_Settings_Overview_Content").innerHTML = "Tells the server what this TV can decode and lets it decide how to send each file.<br><br>Leave this on. Turn it off only if playback stops working after an update, which makes the app decide on its own as older versions did.";
 			break;
 		case "ItemPaging":
 			document.getElementById("guiPage_Settings_Overview_Title").innerHTML = "Item Paging";

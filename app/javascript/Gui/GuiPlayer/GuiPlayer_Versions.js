@@ -33,9 +33,27 @@ GuiPlayer_Versions.start = function(playerData,resumeTicks,playedFromPage) {
 	this.PlayerData = playerData;
 	this.resumeTicks = resumeTicks;
 	this.playedFromPage = playedFromPage;
-	this.playbackInfo = Server.getPlaybackInfo(this.PlayerData.Id);
+	this.serverNegotiated = false;
 
 	FileLog.write("Video : Loading " + this.PlayerData.Name);
+
+	//Ask the server first, sending it a profile of what this panel can decode.
+	//It answers against the real file, where the local capability table can only
+	//approximate. Falls back to the local decision if the server cannot answer.
+	if (File.getTVProperty("ServerNegotiation") !== false) {
+		this.playbackInfo = Server.postPlaybackInfo(this.PlayerData.Id, {
+			startTimeTicks : resumeTicks ? resumeTicks * 10000 : 0
+		});
+		if (this.playbackInfo != null) {
+			this.serverNegotiated = true;
+		} else {
+			FileLog.write("Video : server negotiation unavailable - deciding locally");
+		}
+	}
+
+	if (this.playbackInfo == null) {
+		this.playbackInfo = Server.getPlaybackInfo(this.PlayerData.Id);
+	}
 
 	if (this.playbackInfo == null || this.playbackInfo.MediaSources == null || this.playbackInfo.MediaSources.length == 0) {
 		FileLog.write("Video : No playback info returned by the server");
@@ -44,17 +62,29 @@ GuiPlayer_Versions.start = function(playerData,resumeTicks,playedFromPage) {
 		return;
 	}
 
-	//Check if HTTP
+	//Remote sources - live TV and the like - are not local files, so the stream
+	//analysis below does not apply to them.
 	if (this.playbackInfo.MediaSources[0].Protocol.toLowerCase() == "http") {
-		FileLog.write("Video : Is HTTP : Generate URL Directly");	
-		
-		var audioCodec = (File.getTVProperty("Dolby") && File.getTVProperty("AACtoDolby")) ? "ac3" : "aac";
-		
-		var streamparams = '/master.m3u8?VideoCodec=h264&Profile=high&Level=41&MaxVideoBitDepth=8&MaxWidth=1920&VideoBitrate=10000000&AudioCodec='+audioCodec+'&audioBitrate=360000&TranscodingMaxAudioChannels=6&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True&MediaSourceId='+this.playbackInfo.MediaSources[0].Id + '&api_key=' + Server.getAuthToken();	
-		var url = Server.getServerAddr() + '/Videos/' + this.PlayerData.Id + streamparams + '&DeviceId='+Server.getDeviceID();
-		var httpPlayback = [0,url,"Transcode",-1,-1,-1];
+		FileLog.write("Video : Is HTTP : Generate URL Directly");
+
+		var httpPlayback = null;
+		if (this.serverNegotiated) {
+			var resolved = GuiPlayer_DeviceProfile.resolveUrl(
+				this.playbackInfo.MediaSources[0], this.PlayerData.Id, this.playbackInfo.PlaySessionId);
+			if (resolved != null) {
+				httpPlayback = [0, resolved[0], resolved[1], -1, -1, -1];
+			}
+		}
+
+		if (httpPlayback == null) {
+			var audioCodec = (File.getTVProperty("Dolby") && File.getTVProperty("AACtoDolby")) ? "ac3" : "aac";
+			var streamparams = '/master.m3u8?VideoCodec=h264&Profile=high&Level=41&MaxVideoBitDepth=8&MaxWidth=1920&VideoBitrate='+GuiPlayer_DeviceProfile.getMaxBitrate()+'&AudioCodec='+audioCodec+'&audioBitrate=360000&TranscodingMaxAudioChannels=6&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True&MediaSourceId='+this.playbackInfo.MediaSources[0].Id + '&api_key=' + Server.getAuthToken();
+			var url = Server.getServerAddr() + '/Videos/' + this.PlayerData.Id + streamparams + '&DeviceId='+Server.getDeviceID();
+			httpPlayback = [0,url,"Transcoding Audio & Video",-1,-1,-1];
+		}
+
 		GuiPlayer.startPlayback(httpPlayback,resumeTicks);
-		return;	
+		return;
 	}
 
 	//Loop through all media sources and determine which is best
@@ -64,13 +94,35 @@ GuiPlayer_Versions.start = function(playerData,resumeTicks,playedFromPage) {
 		this.getMainStreamIndex(this.playbackInfo.MediaSources[index],index);
 	}
 	
-	//Loop through all options and see if transcode is required, generate URL blah...
+	//Turn each option into something the player can be handed. When the server
+	//negotiated, take its answer; otherwise decide here as before.
 	FileLog.write("Video : Determine Playback of Media Streams");
 	for (var index = 0; index < this.MediaOptions.length; index++) {
-		var result = GuiPlayer_Transcoding.start(this.PlayerData.Id, this.playbackInfo.MediaSources[this.MediaOptions[index][0]],this.MediaOptions[index][0],
-			this.MediaOptions[index][1],this.MediaOptions[index][2],this.MediaOptions[index][3],this.MediaOptions[index][4]);
-			FileLog.write("Video : Playback Added")
-			this.MediaPlayback.push(result);	
+		var sourceIndex = this.MediaOptions[index][0];
+		var mediaSource = this.playbackInfo.MediaSources[sourceIndex];
+		var result = null;
+
+		if (this.serverNegotiated) {
+			var resolved = GuiPlayer_DeviceProfile.resolveUrl(
+				mediaSource, this.PlayerData.Id, this.playbackInfo.PlaySessionId);
+			if (resolved != null) {
+				//Same shape the player already expects:
+				//[sourceIndex, url, status, videoIndex, audioIndex, subtitleIndex]
+				result = [sourceIndex, resolved[0], resolved[1],
+				          this.MediaOptions[index][1], this.MediaOptions[index][2],
+				          this.MediaOptions[index][4]];
+			} else {
+				FileLog.write("Video : falling back to local decision for this source");
+			}
+		}
+
+		if (result == null) {
+			result = GuiPlayer_Transcoding.start(this.PlayerData.Id, mediaSource, sourceIndex,
+				this.MediaOptions[index][1],this.MediaOptions[index][2],this.MediaOptions[index][3],this.MediaOptions[index][4]);
+		}
+
+		FileLog.write("Video : Playback Added")
+		this.MediaPlayback.push(result);
 	}
 	
 	//Setup Gui
