@@ -44,7 +44,7 @@ GuiUsers.start = function(runAutoLogin) {
 	
 	//Load File Data
 	if (runAutoLogin == true) {
-		var fileJson = JSON.parse(File.loadFile()); 
+		var fileJson = File.readSettings(); 
 		//Look at each user in the local users file.
 		for (var index = 0; index < fileJson.Servers[File.getServerEntry()].Users.length; index++) {
 			//If they are the default users log them in automatically.
@@ -129,7 +129,7 @@ GuiUsers.processSelectedUser = function () {
 
 	//Load JSON File
 	var userInFile = false;
-	var fileJson = JSON.parse(File.loadFile()); 
+	var fileJson = File.readSettings(); 
     if (fileJson.Servers[File.getServerEntry()].Users.length > 0) {	
     	for (var index = 0; index < fileJson.Servers[File.getServerEntry()].Users.length; index++) {
     		var UserId = fileJson.Servers[File.getServerEntry()].Users[index].UserId;

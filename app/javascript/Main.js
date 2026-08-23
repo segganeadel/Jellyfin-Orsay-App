@@ -93,7 +93,7 @@ Main.onLoad = function()
 	if (Main.isImageCaching()) {
 		var fileSystemObj = new FileSystem();
 		fileSystemObj.deleteCommonFile(curWidget.id + '/cache.json');
-		Support.imageCachejson = JSON.parse('{"Images":[]}');
+		Support.imageCachejson = {"Images":[]};
 	}
 	
 	document.getElementById("splashscreen_version").innerHTML = Main.version;
@@ -169,17 +169,17 @@ Main.onLoad = function()
 		Server.setDevice ("Samsung " + pluginTV.GetProductCode(0));
 
 	    //Load Settings File - Check if file needs to be deleted due to development
-	    var fileJson = JSON.parse(File.loadFile());
+	    var fileJson = File.readSettings();
 	    var version = File.checkVersion(fileJson);
 	    if (version == "Undefined" ) {
 	    	//Delete Settings file and reload
 	    	File.deleteSettingsFile();
-	    	fileJson = JSON.parse(File.loadFile());
+	    	fileJson = File.readSettings();
 	    } else if (version != this.version) {
 	    	if (this.forceDeleteSettings == true) {
 	    		//Delete Settings file and reload
 	    		File.deleteSettingsFile();
-		    	fileJson = JSON.parse(File.loadFile());
+		    	fileJson = File.readSettings();
 	    	} else {
 	    		//Update version in settings file to current version
 	    		fileJson.Version = this.version;

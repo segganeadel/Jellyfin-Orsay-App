@@ -22,7 +22,7 @@ GuiPage_Servers.start = function(runAutoLogin) {
 	this.isAddButton = false;
 	
 	//Load Data
-	this.ServerData = JSON.parse(File.loadFile());
+	this.ServerData = File.readSettings();
 	if (this.ServerData.Servers.length == 0) {
 		//Should never happen - Redirect to 
 		GuiPage_NewServer.start();

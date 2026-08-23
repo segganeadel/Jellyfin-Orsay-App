@@ -29,14 +29,25 @@ ServerVersion.start = function() {
 	document.getElementById("ServerVersion").focus();
 }
 
-ServerVersion.checkServerVersion = function() {
-	var url = Server.getCustomURL("/System/Info/Public?format=json");
-	this.ServerInfo = Server.getContent(url);
-	if (this.ServerInfo == null) { return; }
-	
+//serverInfo is optional: the connection check has already fetched it, so pass
+//it in rather than asking the server a second time.
+ServerVersion.checkServerVersion = function(serverInfo) {
+	this.ServerInfo = serverInfo;
+	if (this.ServerInfo == null) {
+		var url = Server.getCustomURL("/System/Info/Public?format=json");
+		this.ServerInfo = Server.getContent(url);
+	}
+
+	//This used to fall out returning undefined, which the caller read as "too
+	//old" and told the user to upgrade a server it had simply failed to reach.
+	if (this.ServerInfo == null || this.ServerInfo.Version == null) {
+		FileLog.write("Server version could not be read - continuing anyway");
+		return true;
+	}
+
 	var requiredServerVersion = Main.getRequiredServerVersion();
 	var currentServerVersion = this.ServerInfo.Version;
-	
+
 	return this.isVersionAtLeast(currentServerVersion, requiredServerVersion);
 }
 

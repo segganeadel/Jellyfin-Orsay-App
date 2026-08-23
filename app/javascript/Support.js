@@ -37,7 +37,9 @@ var Support = {
 Support.clock = function() {
 	var date = new Date();
     var h=date.getHours();
-    var offset = File.getTVProperty("ClockOffset");
+    //This re-armed every 900ms, and reading the setting directly re-opened and
+    //re-parsed the whole settings file each time. FileLog caches it.
+    var offset = FileLog.getClockOffset();
     h = h+offset;
 	if (h<0) {h = h + 24;};
 	if (h>23){h = h - 24;};
@@ -694,7 +696,8 @@ Support.updateSelectedNEW = function(Array,selectedItemID,startPos,endPos,strIfS
 		if (Array.length == 0) {
 			document.getElementById("Counter").innerHTML = "";
 		} else {
-			if (totalRecordCount !== undefined || totalRecordCount != null) { 
+			//Was ||, so a null count still passed and rendered as "3/null".
+			if (totalRecordCount !== undefined && totalRecordCount != null) { 
 				document.getElementById("Counter").innerHTML = (selectedItemID + 1) + "/" + totalRecordCount;
 			} else {
 				document.getElementById("Counter").innerHTML = (selectedItemID + 1) + "/" + Array.length;
@@ -795,9 +798,10 @@ Support.processSelectedItem = function(page,ItemData,startParams,selectedItem,to
 			var name = (genreType == "Series") ? "Genre TV" : "Genre Movies";
 			GuiDisplay_Series.start(name, url,0,0);		
 			break;
-		case "MusicArtist":	
-			var artist = ItemData.Items[selectedItem].Name.replace(/ /g, '+');	 
-			artist = artist.replace(/&/g, '%26');	
+		case "MusicArtist":
+			//Hand-rolled escaping only covered spaces and &, so a name with a
+			//#, % or ? still broke the query.
+			var artist = encodeURIComponent(ItemData.Items[selectedItem].Name);
 			var url = Server.getItemTypeURL("&SortBy=Album%2CSortName&SortOrder=Ascending&IncludeItemTypes=Audio&Recursive=true&CollapseBoxSetItems=false&Artists=" + artist);
 			GuiPage_Music.start(ItemData.Items[selectedItem].Name,url,ItemData.Items[selectedItem].Type);
 			break;	
@@ -967,6 +971,7 @@ Support.generateMainMenu = function() {
 	}
 	
 	var userViews = Server.getUserViews();
+	if (userViews == null || userViews.Items == null) { return menuItems; }
 	for (var i = 0; i < userViews.Items.length; i++){
 		if (userViews.Items[i].CollectionType == "tvshows" || 
 				userViews.Items[i].CollectionType == "homevideos" || 
@@ -995,7 +1000,7 @@ Support.generateMainMenu = function() {
 	}
 	
 	//Check Server Playlists
-	var urlPlaylists = Server.getItemTypeURL("/SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Playlist&Recursive=true&Limit=0");
+	var urlPlaylists = Server.getItemTypeURL("&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Playlist&Recursive=true&Limit=0");
 	var hasPlaylists = Server.getContent(urlPlaylists);
 	if (hasPlaylists == null) { return; }
 	
@@ -1060,6 +1065,7 @@ Support.generateTopMenu = function() {
 	var menuItems = [];
 	
 	var userViews = Server.getUserViews();
+	if (userViews == null || userViews.Items == null) { return menuItems; }
 	for (var i = 0; i < userViews.Items.length; i++){
 		if (userViews.Items[i].CollectionType == "tvshows" || 
 				userViews.Items[i].CollectionType == "boxsets" || 
@@ -1132,8 +1138,8 @@ Support.processHomePageMenu = function (menuItem) {
 		Support.removeAllURLs();
 		
 		var url = Server.getServerAddr() + "/Users/"+Server.getUserID()+"/Items?SortBy=DatePlayed&SortOrder=Descending&MediaTypes=Video&Filters=IsResumable&Limit=10&Recursive=true&Fields=PrimaryImageAspectRatio,BasicSyncInfo&CollapseBoxSetItems=false&ExcludeLocationTypes=Virtual&ImageTypeLimit=1&EnableImageTypes=Primary,Backdrop,Banner,Thumb&EnableTotalRecordCount=false";
-		resumeItems = Server.getContent(url);
-		if (resumeItems.Items.length > 0 && File.getUserProperty("ContinueWatching") == true){
+		var resumeItems = Server.getContent(url);
+		if (resumeItems != null && resumeItems.Items != null && resumeItems.Items.length > 0 && File.getUserProperty("ContinueWatching") == true){
 			var url1 = url;
 			var title1 = "Continue Watching";
 			var url2 = Support.getViewUrl(File.getUserProperty("View1"));
@@ -1281,9 +1287,10 @@ Support.trimInput = function(value) {
 }
 
 Support.parseSearchTerm = function(searchTermString) {
-	var parsedString = searchTermString.replace(/ /gi, "%20");
-	//Probably more chars to parse here!
-	return parsedString;
+	// Only spaces used to be escaped, so searching for "Tom & Jerry" put a bare
+	// & into the query string and truncated the search term.
+	if (searchTermString == null) { return ""; }
+	return encodeURIComponent(searchTermString);
 }
 
 Support.fadeImage = function(imgsrc) {

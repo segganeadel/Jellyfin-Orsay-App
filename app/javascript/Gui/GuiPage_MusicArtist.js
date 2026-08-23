@@ -145,21 +145,21 @@ GuiPage_MusicArtist.updateSelectedItems = function (bypassCounter) {
 
 		//Load Data
 		var url2 = "";
-		artist = this.ItemData.Items[this.selectedItem].Name.replace(/ /g, '+');	 
-		artist = artist.replace(/&/g, '%26');
+		//Was an implicit global, and escaped only spaces and &.
+		var artist = encodeURIComponent(this.ItemData.Items[this.selectedItem].Name);
 		switch (this.title1) {
 		case "Artists":
-			url2 = Server.getItemTypeURL("?SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=MusicAlbum&Recursive=true&StartIndex=0&Artists="+this.ItemData.Items[this.selectedItem].Name.replace(" ","+"));
+			url2 = Server.getItemTypeURL("&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=MusicAlbum&Recursive=true&StartIndex=0&Artists="+artist);
 			break;
 		case "Album Artists":
-			url2 = Server.getItemTypeURL("?SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=MusicAlbum&Recursive=true&StartIndex=0&Artists="+artist);
+			url2 = Server.getItemTypeURL("&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=MusicAlbum&Recursive=true&StartIndex=0&Artists="+artist);
 			break;
 		case "Albums":
 			url2 = Server.getChildItemsURL(this.ItemData.Items[this.selectedItem].Id,"&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Audio&Recursive=true");
 			break;
 		default:
 			//Default is AlbumArtist
-			url2 = Server.getItemTypeURL("?SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=MusicAlbum&Recursive=true&StartIndex=0&Artists="+artist);
+			url2 = Server.getItemTypeURL("&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=MusicAlbum&Recursive=true&StartIndex=0&Artists="+artist);
 			break;
 		}
 		

@@ -94,7 +94,7 @@ GuiPlayer.start = function(title,url,startingPlaybackTick,playedFromPage,isCinem
     	//Enter Cinema Mode?
     	var introsUrl = Server.getItemIntrosUrl(this.VideoData.Id);
     	var intros = Server.getContent(introsUrl);
-    	if (File.getUserProperty("EnableCinemaMode") && intros.TotalRecordCount > 0 && startingPlaybackTick == 0) {
+    	if (File.getUserProperty("EnableCinemaMode") && intros != null && intros.TotalRecordCount > 0 && startingPlaybackTick == 0) {
     		FileLog.write("Playback: Switching to Cinema Mode.");
     		//Start again in Cinema Mode.
     		GuiPlayer.start("PlayAll",introsUrl,0,"GuiPage_ItemDetails",true,this.startParams[1]);
@@ -268,7 +268,12 @@ GuiPlayer.setSubtitles = function(selectedSubtitleIndex) {
 		    try{
 		    	 this.PlayerDataSubtitle = parser.fromSrt(this.PlayerDataSubtitle,true);
 		    }catch(e){
-		        alert(e); //error in the above string(in this case,yes)!
+		        //On a malformed file this left the raw text in place, and the sort
+		        //below then threw outside the try and killed playback.
+		        FileLog.write("Subtitles : could not parse the subtitle file - " + e);
+		        this.PlayerDataSubtitle = null;
+		        this.playingSubtitleIndex = -1;
+		        return;
 		    }
 
 			// subtitles may not be sorted ascending by startTime, but we require it
@@ -709,7 +714,9 @@ GuiPlayer.handlePauseKey = function() {
 GuiPlayer.handleFFKey = function() {
 	FileLog.write("Playback : Fast Forward");
     if(this.Status == "PLAYING") {
-		GuiPlayer.updateSubtitleTime(this.currentTime + 29000,"FF");
+		//Jump* takes seconds, currentTime is in milliseconds. Re-indexing the
+		//subtitles by a different amount than the jump left them out of step.
+		GuiPlayer.updateSubtitleTime(this.currentTime + 30000,"FF");
     	this.plugin.JumpForward(30);
 
     	document.getElementById("guiPlayer_Subtitles").style.bottom="100px";
@@ -734,7 +741,7 @@ GuiPlayer.handleFFKey = function() {
 GuiPlayer.handleRWKey = function() {
 	FileLog.write("Playback : Rewind");
     if(this.Status == "PLAYING") {
-		GuiPlayer.updateSubtitleTime(this.currentTime - 13000,"RW");
+		GuiPlayer.updateSubtitleTime(this.currentTime - 10000,"RW");
 		this.plugin.JumpBackward(10);
 
 		document.getElementById("guiPlayer_Subtitles").style.bottom="100px";
@@ -861,6 +868,8 @@ GuiPlayer.getTranscodeProgress = function() {
     
     for (var index = 0; index < SessionData.length; index++) {
     	if (SessionData[index].DeviceId == Server.getDeviceID()) {
+    		//Null while direct playing - there is no transcode to report on.
+    		if (SessionData[index].TranscodingInfo == null) { return null; }
     		return Math.floor(SessionData[index].TranscodingInfo.CompletionPercentage);
     	}
     }

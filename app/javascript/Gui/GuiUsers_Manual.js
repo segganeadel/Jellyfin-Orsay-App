@@ -39,7 +39,7 @@ GuiUsers_Manual.IMEAuthenticate = function(user, password) {
     	
     	//Check if this user is already in the DB.
     	var userInFile = false;
-    	var fileJson = JSON.parse(File.loadFile()); 
+    	var fileJson = File.readSettings(); 
 		for (var index = 0; index < fileJson.Servers[File.getServerEntry()].Users.length; index++) {
 			if (fileJson.Servers[File.getServerEntry()].Users[index].UserName == user) {
 				userInFile = true;
@@ -122,7 +122,7 @@ var GuiUsers_Manual_Input  = function(id) {
         //Keycode to abort login from password screen      
         ime.setKeyFunc(tvKey.KEY_RETURN, function (keyCode) {
         	widgetAPI.blockNavigation(event);
-        	var fileJson = JSON.parse(File.loadFile());    
+        	var fileJson = File.readSettings();    
     	    if (fileJson.Servers.length > 0) {
     	    	document.getElementById("pageContent").focus();
     	    	GuiUsers.start();

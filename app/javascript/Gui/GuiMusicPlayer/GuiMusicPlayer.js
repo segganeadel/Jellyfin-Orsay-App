@@ -501,24 +501,55 @@ GuiMusicPlayer.handleOnRenderingComplete = function() {
 	this.handleNextKey();
 }
 
+//These were bare alerts that left Status at PLAYING and never stopped the
+//player. The player object is shared with the video player, so an abandoned
+//music stream went on to break the next video too.
+GuiMusicPlayer.handlePlaybackError = function(logText, message) {
+	FileLog.write("Music : " + logText);
+
+	//Theme music plays in the background, so failing to fetch it should not
+	//take the user off the page they are looking at.
+	var isBackground = (this.isThemeMusicPlaying == true || this.playedFromPage == null);
+	if (!isBackground) {
+		GuiNotifications.setNotification(message, "Playback Error");
+	}
+
+	try {
+		if (this.pluginMusic != null) { this.pluginMusic.Stop(); }
+	} catch (e) {
+		FileLog.write("Music : could not stop the player - " + e);
+	}
+	this.Status = "STOPPED";
+
+	if (!isBackground) {
+		this.returnToPage();
+	} else {
+		this.isThemeMusicPlaying = false;
+		this.showThemeId = null;
+		this.queuedItems.length = 0;
+	}
+}
+
 GuiMusicPlayer.handleOnNetworkDisconnected = function() {
-	alert ("Network Disconnect")
+	this.handlePlaybackError("Network disconnected", "The connection to the server was lost.");
 }
 
 GuiMusicPlayer.handleConnectionFailed = function() {
-	alert ("Connection Failed")
+	this.handlePlaybackError("Connection failed", "Could not reach the server to play this track.");
 }
 
 GuiMusicPlayer.handleAuthenticationFailed = function() {
-	alert ("Authentication Failed")
+	this.handlePlaybackError("Authentication failed", "The server refused the request for this track.");
 }
 
 GuiMusicPlayer.handleRenderError = function(RenderErrorType) {
-	alert ("Render Error")
+	//1 container, 2 video codec, 3 audio codec, 4 resolution.
+	this.handlePlaybackError("Render error " + RenderErrorType,
+		"This track cannot be played on this TV (error " + RenderErrorType + ").");
 }
 
 GuiMusicPlayer.handleStreamNotFound = function() {
-	alert ("Stream not found")
+	this.handlePlaybackError("Stream not found", "The server could not provide this track.");
 }
 
 GuiMusicPlayer.setCurrentTime = function(time){

@@ -34,7 +34,7 @@ GuiPage_AddToPlaylist.start=function(itemId, playedFromPage, mediaType) {
 	this.itemId = itemId;
 
 	//Get data from Server
-	var url = Server.getItemTypeURL("/SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Playlist&Recursive=true&MediaTypes=" + mediaType);
+	var url = Server.getItemTypeURL("&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Playlist&Recursive=true&MediaTypes=" + mediaType);
 	this.ItemData = Server.getContent(url);
 	if (this.ItemData == null) { Support.processReturnURLHistory(); return; }
 	

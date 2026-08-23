@@ -116,7 +116,7 @@ GuiPage_Settings.start = function(viewToDisplay) {
 	this.initiateViewValues();
 	
 	//Load Data
-	var fileJson = JSON.parse(File.loadFile());  
+	var fileJson = File.readSettings();  
 	this.AllData = fileJson;
 	this.UserData = fileJson.Servers[File.getServerEntry()].Users[File.getUserEntry()];
 	
@@ -788,7 +788,7 @@ GuiPage_Settings.processSelectedSubItem = function() {
 		
 		//Default User ONLY - Check All Other Users and set to false
 		if (this.currentViewSettings[this.selectedItem] == "Default") {
-			var fileJson = JSON.parse(File.loadFile());  
+			var fileJson = File.readSettings();  
 			for (var index = 0; index < fileJson.Servers[File.getServerEntry()].Users.length; index++) {
 				fileJson.Servers[File.getServerEntry()].Users[index].Default = false;
 			}
@@ -858,6 +858,7 @@ GuiPage_Settings.processSelectedSubItem = function() {
 	case "ClockOffset":
 		this.AllData.TV.ClockOffset = this.ClockOffsetValues[this.selectedSubItem];
 		this.CurrentSettingValue = this.ClockOffsetOptions[this.selectedSubItem];
+		FileLog.resetClockOffset(); //The clock and the log both cache this.
 		break;
 	case "ModelOverride":
 		this.AllData.TV.ModelOverride = this.ModelOverrideValues[this.selectedSubItem];

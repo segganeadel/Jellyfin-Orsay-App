@@ -56,6 +56,32 @@ File.loadFile = function() {
 	}
 };
 
+// Every read of the settings file goes through here, so a truncated or
+// half-written file is dealt with once instead of throwing out of whichever
+// screen happened to touch it first - which used to leave the app dead until
+// the file was deleted by hand.
+File.parseSettings = function(text) {
+	try {
+		var parsed = JSON.parse(text);
+		if (parsed != null && typeof parsed == "object") {
+			return parsed;
+		}
+		FileLog.write("Settings : file did not contain an object");
+	} catch (e) {
+		FileLog.write("Settings : file is unreadable - " + e);
+	}
+
+	// Hand back a usable structure so the caller can carry on. Deliberately not
+	// written to disk: a file that is only temporarily unreadable should not be
+	// destroyed on the strength of one failed read.
+	return {"Version" : Main.getVersion(), "Servers" : [], "TV" : {}};
+};
+
+// Read and parse in one guarded step.
+File.readSettings = function() {
+	return File.parseSettings(File.loadFile());
+};
+
 File.checkVersion = function(fileContent) {
 	if (fileContent.Version === undefined) {
 		return "Undefined"
@@ -68,7 +94,7 @@ File.saveServerToFile = function(Id,Name,ServerIP) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 		
 		var serverExists = false;
@@ -94,7 +120,7 @@ File.saveServerToFile = function(Id,Name,ServerIP) {
 };
 
 File.setDefaultServer = function (defaultIndex) {
-	var fileJson = JSON.parse(File.loadFile()); 
+	var fileJson = File.readSettings(); 
 	for (var index = 0; index < fileJson.Servers.length; index++) {
 		if (fileJson.Servers[defaultIndex].Id == fileJson.Servers[index].Id ) {
 			fileJson.Servers[index].Default = true;
@@ -116,7 +142,7 @@ File.deleteServer = function (index) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		fileJson.Servers.splice(index, 1); //Without the count, splice drops every later server too.
@@ -139,7 +165,7 @@ File.addUser = function (UserId, Name, Password, rememberPassword) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		//Check if user doesn't already exist - if does, alter password and save!
@@ -173,7 +199,7 @@ File.deleteUser = function (index) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		fileJson.Servers[this.ServerEntry].Users.splice(index, 1); //Without the count, splice drops every later user too.
@@ -190,7 +216,7 @@ File.deleteAllUsers = function (index) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		fileJson.Servers[this.ServerEntry].Users = [];
@@ -207,7 +233,7 @@ File.deleteUserPasswords = function () {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		for (var index = 0; index < fileJson.Servers[this.ServerEntry].Users.length; index++) {
@@ -226,7 +252,7 @@ File.updateUserSettings = function (altered) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		fileJson.Servers[this.ServerEntry].Users[this.UserEntry] = altered;
@@ -244,7 +270,7 @@ File.updateServerSettings = function (altered) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		fileJson.Servers[this.ServerEntry] = altered;
@@ -274,7 +300,7 @@ File.getUserProperty = function(property) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 		if (!fileJson.Servers[this.ServerEntry].Users[this.UserEntry]) { //In case we're not logged in yet.
 			return null;
@@ -298,7 +324,7 @@ File.getTVProperty = function(property) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		if (fileJson.TV === undefined) {
@@ -329,7 +355,7 @@ File.setTVProperty = function(property,value) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);
 
 		if (fileJson.TV === undefined) {
@@ -344,7 +370,7 @@ File.setUserProperty = function(property,value) {
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
-		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
 		if (property == "Password") {

@@ -156,7 +156,7 @@ var GuiPage_NewServer_Input  = function(id,previousId, nextId) {
         });
         ime.setKeyFunc(tvKey.KEY_RETURN, function (keyCode) {
         	widgetAPI.blockNavigation(event);
-        	var fileJson = JSON.parse(File.loadFile());    
+        	var fileJson = File.readSettings();    
     	    if (fileJson.Servers.length > 0) {
     	    	document.getElementById("pageContent").focus();  
     	    	GuiPage_Servers.start();

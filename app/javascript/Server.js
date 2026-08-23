@@ -19,6 +19,17 @@ Server.getServerAddr = function() {
 	return this.serverAddr;
 }
 
+// A truncated or malformed response should read as "no data" rather than
+// throwing out of whichever screen asked for it.
+Server.parseResponse = function(text) {
+	try {
+		return JSON.parse(text);
+	} catch (e) {
+		FileLog.write("Server : could not parse response - " + e);
+		return null;
+	}
+}
+
 // Jellyfin keys a session on DeviceId, so two TVs reporting the same id share
 // one session: their progress overwrites each other's and stopping playback on
 // one kills the other's transcode. Deriving the id from the MAC gave every set
@@ -257,6 +268,14 @@ Server.getBackgroundImageURL = function(itemId,imagetype,maxwidth,maxheight,unpl
 	case "Backdrop":
 		query =   Server.getServerAddr() + "/Items/"+ itemId +"/Images/Backdrop/"+index+"?maxwidth="+maxwidth+"&maxheight="+maxheight;
 		break;
+	//Callers ask for Primary too. Without this the switch fell through and the
+	//function returned "&Quality=90&api_key=..." with no address or path at all.
+	case "Primary":
+		query =   Server.getServerAddr() + "/Items/"+ itemId +"/Images/Primary/0?maxwidth="+maxwidth+"&maxheight="+maxheight;
+		break;
+	default:
+		FileLog.write("Image : no background URL for image type " + imagetype);
+		return null;
 	}
 
 	query = query + "&Quality=90";
@@ -370,7 +389,7 @@ Server.getSubtitles = function(url) {
 	} else {
 		alert ("Bad xmlHTTP Request");
 		Server.Logout();
-		GuiNotifications.setNotification("Bad xmlHTTP Request<br>Token: " + Server.getAuthToken(),"Server Error",false);
+		GuiNotifications.setNotification("The TV could not create a request to the server.","Server Error",false);
 		GuiUsers.start(true);
 		return null;
 	}
@@ -484,7 +503,8 @@ Server.deleteFavourite = function(id) {
 //       GuiIP Functions
 //------------------------------------------------------------
 Server.createPlaylist = function(name, ids, mediaType) {
-	var url = this.serverAddr + "/Playlists?Name=" + name + "&Ids=" + ids + "&userId="+Server.getUserID() + "&MediaType=" + mediaType;
+	//A name with a space, & or # used to break or truncate the request.
+	var url = this.serverAddr + "/Playlists?Name=" + encodeURIComponent(name) + "&Ids=" + ids + "&userId="+Server.getUserID() + "&MediaType=" + mediaType;
 	xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("POST", url , true); //must be true!
@@ -592,7 +612,12 @@ Server._tryConnectWithPath = function (server, pathIndex, fromFile) {
 
 	if (xmlHttp.status === 200) {
 		// Success!
-		var json = JSON.parse(xmlHttp.responseText);
+		var json = Server.parseResponse(xmlHttp.responseText);
+		if (json == null) {
+			//Answered, but not with something we can read - keep looking.
+			Server._tryConnectWithPath(server, pathIndex + 1, fromFile);
+			return;
+		}
 		GuiNotifications.setNotification(
 			'Connected to "' + json.ServerName + '"',
 			json.ProductName + " v" + json.Version,
@@ -606,8 +631,8 @@ Server._tryConnectWithPath = function (server, pathIndex, fromFile) {
 		// Set Server.serverAddr with detected base path
 		Server.setServerAddr(serverBase + basePath);
 
-		// Check Server Version
-		if (ServerVersion.checkServerVersion()) {
+		// Check Server Version - reuse the info we just fetched.
+		if (ServerVersion.checkServerVersion(json)) {
 			GuiUsers.start(true);
 		} else {
 			ServerVersion.start();
@@ -678,7 +703,11 @@ Server.Authenticate = function(UserId, UserName, Password) {
     if (xmlHttp.status != 200) {
     	return false;
     } else {
-    	var session = JSON.parse(xmlHttp.responseText);
+    	var session = Server.parseResponse(xmlHttp.responseText);
+    	if (session == null || session.User == null) {
+    		FileLog.write("Auth : server returned 200 but no usable session");
+    		return false;
+    	}
     	this.AuthenticationToken = session.AccessToken;
     	this.setUserID(session.User.Id);
     	this.setUserName(UserName);
@@ -720,13 +749,12 @@ Server.getContent = function(url) {
 			GuiNotifications.setNotification("The HTTP status code returned by the server was "+xmlHttp.status+".", "Server Error:");
 			return null;
 		} else {
-			//alert(xmlHttp.responseText);
-			return JSON.parse(xmlHttp.responseText);
+			return Server.parseResponse(xmlHttp.responseText);
 		}
 	} else {
 		alert ("Bad xmlHTTP Request");
 		Server.Logout();
-		GuiNotifications.setNotification("Bad xmlHTTP Request<br>Token: " + Server.getAuthToken(),"Server Error",false);
+		GuiNotifications.setNotification("The TV could not create a request to the server.","Server Error",false);
 		GuiUsers.start(true);
 		return null;
 	}

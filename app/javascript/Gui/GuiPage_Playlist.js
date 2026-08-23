@@ -426,7 +426,7 @@ GuiPage_Playlist.deletePlaylist = function (playlistId) {
 	}, 250);
 
 	setTimeout(function(){
-		var url = Server.getItemTypeURL("SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Playlist&Recursive=true&Fields=SortName");	
+		var url = Server.getItemTypeURL("&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Playlist&Recursive=true&Fields=SortName");	
 		GuiDisplayOneItem.start("Playlists",url,0,0);
 	}, 450);
 }
