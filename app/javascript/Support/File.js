@@ -119,8 +119,8 @@ File.deleteServer = function (index) {
 		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
-		fileJson.Servers.splice(index);
-		
+		fileJson.Servers.splice(index, 1); //Without the count, splice drops every later server too.
+
 		var openWrite = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'w');
 		if (openWrite) {
 			openWrite.writeLine(JSON.stringify(fileJson)); 
@@ -176,8 +176,8 @@ File.deleteUser = function (index) {
 		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
-		fileJson.Servers[this.ServerEntry].Users.splice(index);
-		
+		fileJson.Servers[this.ServerEntry].Users.splice(index, 1); //Without the count, splice drops every later user too.
+
 		var openWrite = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'w');
 		if (openWrite) {
 			openWrite.writeLine(JSON.stringify(fileJson)); 
@@ -324,6 +324,21 @@ File.getTVProperty = function(property) {
 //---------------------------------------------------------------------------------------------------------------------------------
 //-  SET FUNCTIONS
 //---------------------------------------------------------------------------------------------------------------------------------
+
+File.setTVProperty = function(property,value) {
+	var fileSystemObj = new FileSystem();
+	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
+	if (openRead) {
+		var fileJson = JSON.parse(openRead.readLine()); //Read line as only 1 and skips line break!
+		fileSystemObj.closeCommonFile(openRead);
+
+		if (fileJson.TV === undefined) {
+			fileJson.TV = {};
+		}
+		fileJson.TV[property] = value;
+		File.writeAll(fileJson);
+	}
+};
 
 File.setUserProperty = function(property,value) {
 	var fileSystemObj = new FileSystem();
