@@ -10,7 +10,7 @@ var GuiPage_SettingsLog = {
 }
 
 GuiPage_SettingsLog.onFocus = function() {
-	GuiHelper.setControlButtons("Clear Log",null,null,GuiMusicPlayer.Status == "PLAYING" || GuiMusicPlayer.Status == "PAUSED" ? "Music" : null,"Return");
+	GuiHelper.setControlButtons("Clear Log","Send Log to PC",null,GuiMusicPlayer.Status == "PLAYING" || GuiMusicPlayer.Status == "PAUSED" ? "Music" : null,"Return");
 }
 
 GuiPage_SettingsLog.getMaxDisplay = function() {
@@ -143,9 +143,19 @@ GuiPage_SettingsLog.keyDown = function() {
 			FileLog.write("Log File Emptied by User")
 			GuiPage_SettingsLog.start(); //relead
 			break;
-		case tvKey.KEY_BLUE:	
+		case tvKey.KEY_GREEN:
+			var host = FileLog.getDiagnosticsHost();
+			if (!host) {
+				GuiNotifications.setNotification("Connect to a server first, or set DiagnosticsHost.","Cannot Send Log");
+			} else if (FileLog.upload(host)) {
+				GuiNotifications.setNotification("Log sent to " + host + ".","Log Sent");
+			} else {
+				GuiNotifications.setNotification("No collector answered at " + host + " on port 80.","Send Failed");
+			}
+			break;
+		case tvKey.KEY_BLUE:
 			GuiMusicPlayer.showMusicPlayer("GuiPage_SettingsLog","bannerItem"+this.selectedBannerItem,"bannerItem bannerItemPadding highlight"+Main.highlightColour+"Text");
-			break;		
+			break;
 		case tvKey.KEY_TOOLS:
 			widgetAPI.blockNavigation(event);
 			GuiMainMenu.requested("GuiPage_SettingsLog",null);
