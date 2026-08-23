@@ -37,27 +37,21 @@ GuiUsers_Manual.IMEAuthenticate = function(user, password) {
     if (authenticateSuccess) {   	
     	document.getElementById("NoKeyInput").focus();
     	
-    	//Check if this user is already in the DB.
-    	var userInFile = false;
-    	var fileJson = File.readSettings(); 
+    	//Note where this user sits in the file, if they are already known.
+    	var fileJson = File.readSettings();
 		for (var index = 0; index < fileJson.Servers[File.getServerEntry()].Users.length; index++) {
 			if (fileJson.Servers[File.getServerEntry()].Users[index].UserName == user) {
-				userInFile = true;
 				File.setUserEntry(index);
 			}
 		}
-    	
-		//Otherwise add them.
-		if (userInFile == false) {
-			alert("Need to add the user to the DB");
-			//Add Username & Password to DB - Save password only if rememberPassword = true
-			if (this.rememberPassword == true) {
-				File.addUser(Server.UserID,user,password,this.rememberPassword);
-			} else {
-				File.addUser(Server.UserID,user,"",this.rememberPassword);
-			}
-		}
-			
+
+		//Save on every sign-in, not only the first. addUser updates an existing
+		//entry, and the freshly issued access token needs storing each time or
+		//the next launch has nothing to sign in with. The password is only kept
+		//when the user asked for it.
+		File.addUser(Server.UserID, user, this.rememberPassword ? password : "", this.rememberPassword);
+
+
     	//Change Focus and call function in GuiMain to initiate the page!
     	GuiMainMenu.start();
     } else {

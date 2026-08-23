@@ -779,14 +779,64 @@ Server.Authenticate = function(UserId, UserName, Password) {
     }
 }
 
+// Sign in with a token saved from a previous session, so the user is not asked
+// for a password on every launch. Jellyfin access tokens do not expire on their
+// own; they stop working only if the device is revoked or the server is reset,
+// and this reports false in that case so the caller can fall back to the login
+// screen. Returns true when the token still works.
+Server.authenticateWithToken = function(token, userId, userName) {
+	if (!token) { return false; }
+
+	//Try the token before adopting it, so a revoked one cannot leave the app
+	//believing it is signed in.
+	var previousToken = this.AuthenticationToken;
+	this.AuthenticationToken = token;
+
+	var url = this.getServerAddr() + "/Users/Me?format=json";
+	var xmlHttp = new XMLHttpRequest();
+	if (!xmlHttp) { this.AuthenticationToken = previousToken; return false; }
+
+	try {
+		xmlHttp.open("GET", url, false);
+		xmlHttp = this.setRequestHeaders(xmlHttp);
+		xmlHttp.send(null);
+	} catch (e) {
+		FileLog.write("Auth : saved token could not be checked - " + e);
+		this.AuthenticationToken = previousToken;
+		return false;
+	}
+
+	if (xmlHttp.status != 200) {
+		FileLog.write("Auth : saved token rejected with HTTP " + xmlHttp.status);
+		this.AuthenticationToken = previousToken;
+		return false;
+	}
+
+	var me = Server.parseResponse(xmlHttp.responseText);
+	if (me == null || me.Id == null) {
+		FileLog.write("Auth : saved token accepted but no user returned");
+		this.AuthenticationToken = previousToken;
+		return false;
+	}
+
+	this.setUserID(me.Id);
+	this.setUserName(me.Name ? me.Name : userName);
+	FileLog.write("Auth : signed in as " + this.getUserName() + " with a saved token");
+	return true;
+}
+
 Server.Logout = function() {
 	var url = this.serverAddr + "/Sessions/Logout";
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("POST", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
 		xmlHttp.send(null);
 	}
+
+	//Forget the saved sign-in, or the next launch would sign straight back in.
+	File.clearSavedLogin();
+	this.AuthenticationToken = null;
 
 	//Close down any running items
 	GuiImagePlayer_Screensaver.kill();

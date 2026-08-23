@@ -168,6 +168,11 @@ File.addUser = function (UserId, Name, Password, rememberPassword) {
 		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
 		fileSystemObj.closeCommonFile(openRead);	
 
+		//The access token the server just issued. Storing it means the next
+		//launch can sign in without the password - which is the only way to
+		//stay signed in without keeping the password on disk.
+		var accessToken = Server.getAuthToken();
+
 		//Check if user doesn't already exist - if does, alter password and save!
 		var userFound = false;
 		for (var index = 0; index < fileJson.Servers[this.ServerEntry].Users.length; index++) {
@@ -176,23 +181,50 @@ File.addUser = function (UserId, Name, Password, rememberPassword) {
 				this.UserEntry = index;
 				fileJson.Servers[this.ServerEntry].Users[index].Password = Password;
 				fileJson.Servers[this.ServerEntry].Users[index].RememberPassword = rememberPassword;
+				fileJson.Servers[this.ServerEntry].Users[index].AccessToken = accessToken;
 				break;
 			}
 		}
 		if (userFound == false) {
 			this.UserEntry = fileJson.Servers[this.ServerEntry].Users.length;
-			//view1 = Server.getServerAddr() + "/Shows/NextUp?format=json&UserId="+Server.getUserID()+"&IncludeItemTypes=Episode&ExcludeLocationTypes=Virtual&Limit=24&Fields=PrimaryImageAspectRatio,SeriesInfo,DateCreated,SyncInfo,SortName&ImageTypeLimit=1&EnableImageTypes=Primary,Backdrop,Banner,Thumb";
-			//view2 = Server.getCustomURL("/Users/" + Server.getUserID() + "/Items/Latest?format=json&IncludeItemTypes=Movie"+Server.getMoviesViewQueryPart()+"&IsFolder=false&fields=ParentId,SortName,Overview,Genres,RunTimeTicks");
-			fileJson.Servers[this.ServerEntry].Users[this.UserEntry] = {"UserId":UserId,"UserName":Name.toLowerCase(),"Password":Password,"RememberPassword":rememberPassword,"Default":false,"HighlightColour":1,"ContinueWatching":true,"View1":"TVNextUp","View1Name":"Next Up","View2":"LatestMovies","View2Name":"Latest Movies"};
-			
+			//The first account to sign in becomes the default, so the app signs
+			//straight back in next time instead of asking again. Previously
+			//nothing ever set this and the login screen appeared on every launch.
+			var isFirstUser = (fileJson.Servers[this.ServerEntry].Users.length == 0);
+			fileJson.Servers[this.ServerEntry].Users[this.UserEntry] = {"UserId":UserId,"UserName":Name.toLowerCase(),"Password":Password,"RememberPassword":rememberPassword,"AccessToken":accessToken,"Default":isFirstUser,"HighlightColour":1,"ContinueWatching":true,"View1":"TVNextUp","View1Name":"Next Up","View2":"LatestMovies","View2Name":"Latest Movies"};
+
 		}
-		
+
+		//Auto sign-in only looks at the default account. Accounts saved before
+		//this existed have no default set, so adopt this one when none is.
+		var haveDefault = false;
+		for (var d = 0; d < fileJson.Servers[this.ServerEntry].Users.length; d++) {
+			if (fileJson.Servers[this.ServerEntry].Users[d].Default == true) { haveDefault = true; break; }
+		}
+		if (!haveDefault) {
+			fileJson.Servers[this.ServerEntry].Users[this.UserEntry].Default = true;
+		}
+
 		var openWrite = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'w');
 		if (openWrite) {
-			openWrite.writeLine(JSON.stringify(fileJson)); 
-			fileSystemObj.closeCommonFile(openWrite); 
+			openWrite.writeLine(JSON.stringify(fileJson));
+			fileSystemObj.closeCommonFile(openWrite);
 		}
 	}
+};
+
+//Signing out has to drop the saved token as well, or the next launch would
+//simply sign back in with it.
+File.clearSavedLogin = function () {
+	var fileJson = File.readSettings();
+	if (fileJson.Servers == null || fileJson.Servers[this.ServerEntry] == null) { return; }
+
+	var users = fileJson.Servers[this.ServerEntry].Users;
+	if (users == null || users[this.UserEntry] == null) { return; }
+
+	users[this.UserEntry].AccessToken = null;
+	users[this.UserEntry].Default = false;
+	File.writeAll(fileJson);
 };
 
 File.deleteUser = function (index) {

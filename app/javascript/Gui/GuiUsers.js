@@ -49,11 +49,20 @@ GuiUsers.start = function(runAutoLogin) {
 		for (var index = 0; index < fileJson.Servers[File.getServerEntry()].Users.length; index++) {
 			//If they are the default users log them in automatically.
 			if (fileJson.Servers[File.getServerEntry()].Users[index].Default == true) {
-				var userId = fileJson.Servers[File.getServerEntry()].Users[index].UserId;
-				var User = fileJson.Servers[File.getServerEntry()].Users[index].UserName;
-    			var Password = fileJson.Servers[File.getServerEntry()].Users[index].Password;
-				//Try to authenticate.					
-				var authenticateSuccess = Server.Authenticate(userId, User, Password);		
+				var savedUser = fileJson.Servers[File.getServerEntry()].Users[index];
+				var userId = savedUser.UserId;
+				var User = savedUser.UserName;
+				var Password = savedUser.Password;
+
+				//Prefer the saved access token: it survives without keeping the
+				//password on disk, and it is what lets the app stay signed in.
+				var authenticateSuccess = Server.authenticateWithToken(savedUser.AccessToken, userId, User);
+
+				//Only fall back to the password if one was actually kept.
+				if (!authenticateSuccess && Password) {
+					authenticateSuccess = Server.Authenticate(userId, User, Password);
+				}
+
 				if (authenticateSuccess) {
 					autoLogin = true;
 					//Set File User Entry
@@ -61,9 +70,11 @@ GuiUsers.start = function(runAutoLogin) {
 					//Change Focus and call function in GuiMain to initiate the page!
 					GuiMainMenu.start();
 				} else {
-					//Delete user from DB here - makes life much simpler to delete and read on success!!!
-					File.deleteUser(index);				
-				}	
+					//Show the login screen rather than deleting the account. The
+					//old behaviour threw the saved user away on any failure,
+					//including a server that was merely unreachable.
+					FileLog.write("Auth : could not sign in automatically - asking for the password");
+				}
 				break;
 			}
 		}
