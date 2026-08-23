@@ -184,9 +184,6 @@ Support.processReturnURLHistory = function() {
 			case "GuiPage_Photos":
 				GuiPage_Photos.start(title,url,selectedItem,topLeftItem);
 				break;
-			case "GuiPage_PhotoNavigation":
-				GuiPage_PhotoNavigation.start(title,url,selectedItem,topLeftItem);
-				break;	
 			case "GuiPage_Playlist": //Params 3 = type, saved in url2, Param 4 = playlistid, saved as title2
 				GuiPage_Playlist.start(title,url,title2,url2);
 				break;	

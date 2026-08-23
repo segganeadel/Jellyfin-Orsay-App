@@ -51,7 +51,7 @@ GuiPage_ItemDetails.start = function(title,url,selectedItem) {
 	
 	//Get Server Data
 	this.ItemData = Server.getContent(url);
-	if (this.ItemData == null) { Support.processReturnURLHistory(); }
+	if (this.ItemData == null) { Support.processReturnURLHistory(); return; }
 	
 	//Set PageContent
 	document.getElementById("pageContent").className = "";

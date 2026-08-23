@@ -38,7 +38,7 @@ GuiDisplayOneItem.start = function(title,url,selectedItem,topLeftItem) {
 	
 	//Load Data
 	this.ItemData = Server.getContent(url + "&Limit="+File.getTVProperty("ItemPaging"));
-	if (this.ItemData == null) { Support.processReturnURLHistory(); }
+	if (this.ItemData == null) { Support.processReturnURLHistory(); return; }
 	//Once we've browsed the channels down to a content folder we should display them using GuiDisplay_Series.
 	if (this.ItemData.TotalRecordCount >0){
 		if (this.ItemData.Items[0].Type == "ChannelVideoItem" || 

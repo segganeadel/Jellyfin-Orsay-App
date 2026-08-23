@@ -38,7 +38,7 @@ GuiDisplay_Episodes.start = function(title,url,selectedItem,topLeftItem) {
 	
 	//Load Data
 	this.ItemData = Server.getContent(url);
-	if (this.ItemData == null) { Support.processReturnURLHistory(); }
+	if (this.ItemData == null) { Support.processReturnURLHistory(); return; }
 	
 	//Latest Page Fix
 	this.isLatest = false;

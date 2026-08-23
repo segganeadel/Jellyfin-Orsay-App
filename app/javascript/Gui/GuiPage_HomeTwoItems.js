@@ -44,7 +44,7 @@ GuiPage_HomeTwoItems.start = function(title1, url1, title2, url2,selectedItem,to
 	
 	//Load Data
 	this.ItemData = Server.getContent(url1);
-	if (this.ItemData == null) { Support.processReturnURLHistory(); }
+	if (this.ItemData == null) { Support.processReturnURLHistory(); return; }
 	
 	this.ItemData2 = Server.getContent(url2);	
 	if (this.ItemData2 == null) { return; }

@@ -82,7 +82,7 @@ GuiDisplay_Series.start = function(title,url,selectedItem,topLeftItem,items) {
 		}
 	}
 	
-	if (this.ItemData == null) { Support.processReturnURLHistory(); }
+	if (this.ItemData == null) { Support.processReturnURLHistory(); return; }
 	this.totalRecordCount = (this.totalRecordCount == 0) ? this.ItemData.TotalRecordCount : this.totalRecordCount;
 	Support.pageLoadTimes("GuiDisplay_Series","RetrievedServerData",false);
 	

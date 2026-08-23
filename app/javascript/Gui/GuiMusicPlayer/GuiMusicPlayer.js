@@ -103,7 +103,7 @@ GuiMusicPlayer.start = function(title,url,playedFromPage,isQueue,showThemeId,ite
 				if (showThemeId != this.showThemeId) {		
 					var urlTheme = Server.getThemeMedia(itemId);
 					this.ItemData = Server.getContent(urlTheme);
-					if (this.ItemData == null) { Support.processReturnURLHistory(); }
+					if (this.ItemData == null) { Support.processReturnURLHistory(); return; }
 					
 					if (this.ItemData.ThemeSongsResult.Items.length > 0) {
 						//Play something
@@ -132,7 +132,7 @@ GuiMusicPlayer.start = function(title,url,playedFromPage,isQueue,showThemeId,ite
 	} else {
 		//get info from URL
 		this.ItemData = Server.getContent(url);
-		if (this.ItemData == null) { Support.processReturnURLHistory(); }	
+		if (this.ItemData == null) { Support.processReturnURLHistory(); return; }	
 			
 		//See if item is to be added to playlist or not - if not reset playlist
 		if (this.Status != "STOPPED" && (this.isThemeMusicPlaying == true || isQueue == false)) {
@@ -280,7 +280,7 @@ GuiMusicPlayer.keyDown = function() {
 		case tvKey.KEY_BLUE:	
 			alert("RETURN");
 			widgetAPI.blockNavigation(event);
-			if (this.status == "PAUSED") {
+			if (this.Status == "PAUSED") {
 				this.handleStopKey();
 			} else {
 				if (this.playedFromPage == "GuiImagePlayer") {
@@ -330,10 +330,15 @@ GuiMusicPlayer.handlePlayKey = function() {
 			var playbackInfo = Server.getPlaybackInfo(this.queuedItems[this.currentPlayingItem].Id);
 			this.PlaySessionId = playbackInfo ? playbackInfo.PlaySessionId : null;
 		    
-			this.videoURL += '&PlaySessionId=' + this.PlaySessionId;
+			//Build the play URL locally - appending to this.videoURL accumulated
+			//another &PlaySessionId= every time the same track was replayed.
+			var playUrl = this.videoURL;
+			if (this.PlaySessionId) {
+				playUrl += '&PlaySessionId=' + this.PlaySessionId;
+			}
 
 			//Calculate position in seconds
-		    this.pluginMusic.Play(this.videoURL);
+		    this.pluginMusic.Play(playUrl);
 		}
 		document.getElementById("guiMusicPlayerPlay").style.backgroundImage="url('images/musicplayer/play-active-29x37.png')";
 		document.getElementById("guiMusicPlayerPause").style.backgroundImage="url('images/musicplayer/pause-32x37.png')";
@@ -433,15 +438,21 @@ GuiMusicPlayer.handleNextKey = function() {
 }
 
 GuiMusicPlayer.handlePreviousKey = function() {
-	//Stop Any Playback
-	var timeOfStoppedSong = Math.floor((this.currentTime % 60000) / 1000);
-		
+	//Seconds elapsed in the current track. Taking currentTime % 60000 gave the
+	//seconds within the minute, so Previous behaved differently at 1:03 and 0:59.
+	var timeOfStoppedSong = Math.floor(this.currentTime / 1000);
+
 	Server.videoStopped(this.queuedItems[this.currentPlayingItem].Id,this.queuedItems[this.currentPlayingItem].MediaSources[0].Id,this.currentTime,"DirectStream",this.PlaySessionId);
 	this.pluginMusic.Stop();
 	this.Status = "STOPPED";
 		
 	//If song over 5 seconds long, previous song returns to start of current song, else go back to previous
 	this.currentPlayingItem = (timeOfStoppedSong > 5 ) ? this.currentPlayingItem : this.currentPlayingItem-1;
+
+	//Previous on the first track walked off the start of the queue.
+	if (this.currentPlayingItem < 0) {
+		this.currentPlayingItem = 0;
+	}
 
 	if (this.queuedItems.length <= this.currentPlayingItem) {
 		this.returnToPage();
@@ -521,8 +532,9 @@ GuiMusicPlayer.setCurrentTime = function(time){
 			//Update Server every 8 ticks
 			if (this.updateTimeCount == 8) {
 				this.updateTimeCount = 0;
-				//Update Server
-				Server.videoPaused(this.queuedItems[this.currentPlayingItem].Id,this.queuedItems[this.currentPlayingItem].MediaSources[0].Id,this.currentTime,"DirectStream",this.PlaySessionId);
+				//Progress ping during normal playback - videoPaused reports
+				//IsPaused:true, which left the server showing us paused throughout.
+				Server.videoTime(this.queuedItems[this.currentPlayingItem].Id,this.queuedItems[this.currentPlayingItem].MediaSources[0].Id,this.currentTime,"DirectStream",this.PlaySessionId);
 			}
 			document.getElementById("guiMusicPlayerTime").innerHTML = Support.convertTicksToTime(this.currentTime, (this.queuedItems[this.currentPlayingItem].RunTimeTicks / 10000));
 		}
