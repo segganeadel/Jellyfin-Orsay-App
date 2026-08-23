@@ -30,6 +30,7 @@ var GuiPlayer = {
 		PlayerDataSubtitle : null,
 		PlayerIndex : null,
 		PlaySessionId : null,
+		LiveStreamId : null,
 		
 		subtitleInterval : null,
 		subtitleShowingIndex : 0,
@@ -64,7 +65,31 @@ GuiPlayer.init = function() {
     this.plugin.OnBufferingProgress = 'GuiPlayer.onBufferingProgress';
     this.plugin.OnBufferingComplete = 'GuiPlayer.onBufferingComplete';  
     this.plugin.OnStreamInfoReady = 'GuiPlayer.OnStreamInfoReady'; 
-    this.plugin.SetTotalBufferSize(40*1024*1024);
+    this.setupBuffers();
+};
+
+//The player was given a total buffer size and nothing else, leaving the rest
+//at firmware defaults. The two that matter are how much is gathered before
+//playback starts and how much has to be gathered again after a stall, which is
+//what makes buffering flap on a weak connection.
+GuiPlayer.setupBuffers = function() {
+	//40MB is well beyond the guide's own 5MB example and the call can simply
+	//fail on a set with less to spare, silently leaving the default. Step down
+	//until one is accepted.
+	var sizes = [40*1024*1024, 20*1024*1024, 10*1024*1024, 5*1024*1024];
+	for (var i = 0; i < sizes.length; i++) {
+		var ok = false;
+		try { ok = this.plugin.SetTotalBufferSize(sizes[i]); } catch (e) { ok = false; }
+		if (ok !== false) {
+			FileLog.write("Playback : total buffer " + Math.round(sizes[i]/1048576) + "MB");
+			break;
+		}
+	}
+
+	//Sizes are in bytes, despite the guide's prose saying percent - both its
+	//syntax and its examples pass byte counts.
+	try { this.plugin.SetInitialBuffer(1024*1024); } catch (e) {}
+	try { this.plugin.SetPendingBuffer(512*1024); } catch (e) {}
 };
 
 GuiPlayer.start = function(title,url,startingPlaybackTick,playedFromPage,isCinemaMode,featureUrl) { 
@@ -206,6 +231,24 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 		url += '|COMPONENT=HLS';
 	}
 
+	//A transcode has to be started, and ffmpeg produces nothing for the first
+	//few seconds. The default start timeout can expire in that window and
+	//surface as a connection failure, so allow longer when the server is
+	//encoding than when it is simply sending a file.
+	try {
+		this.plugin.SetInitialTimeOut(this.PlayMethod == "DirectPlay" ? 30 : 60);
+	} catch (e) {}
+
+	//Live TV holds a tuner until the stream is closed, so remember which one.
+	this.LiveStreamId = null;
+	if (playbackInfo != null && playbackInfo.MediaSources != null) {
+		var negotiated = playbackInfo.MediaSources[this.playingMediaSourceIndex];
+		if (negotiated != null && negotiated.LiveStreamId) {
+			this.LiveStreamId = negotiated.LiveStreamId;
+			FileLog.write("Playback : live stream " + this.LiveStreamId);
+		}
+	}
+
 	//Update Server content is playing * update time
 	Server.videoStarted(this.PlayerData.Id,this.playingMediaSource.Id,this.PlayMethod,this.PlaySessionId);
 	FileLog.write("Playback : E+ Series Playback - Load URL");
@@ -225,6 +268,13 @@ GuiPlayer.stopPlayback = function() {
 	//left every other model relying on the stop report alone to reap ffmpeg.
 	if (this.PlayMethod != "DirectPlay") {
 		Server.stopHLSTranscode(this.PlaySessionId);
+	}
+
+	//Release the tuner. Without this it stays held until the server times the
+	//stream out, and the next attempt to watch live TV finds none free.
+	if (this.LiveStreamId) {
+		Server.closeLiveStream(this.LiveStreamId);
+		this.LiveStreamId = null;
 	}
 };
 
