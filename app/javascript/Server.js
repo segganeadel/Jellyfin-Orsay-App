@@ -19,6 +19,23 @@ Server.getServerAddr = function() {
 	return this.serverAddr;
 }
 
+// Same as getContent, but says nothing on screen when it fails. For requests
+// made on a timer, where a notification per attempt would be worse than the
+// failure itself.
+Server.getContentQuiet = function(url) {
+	var xmlHttp = new XMLHttpRequest();
+	if (!xmlHttp) { return null; }
+	try {
+		xmlHttp.open("GET", url, false);
+		xmlHttp = this.setRequestHeaders(xmlHttp);
+		xmlHttp.send(null);
+	} catch (e) {
+		return null;
+	}
+	if (xmlHttp.status != 200) { return null; }
+	return Server.parseResponse(xmlHttp.responseText);
+}
+
 // A truncated or malformed response should read as "no data" rather than
 // throwing out of whichever screen asked for it.
 Server.parseResponse = function(text) {
@@ -822,6 +839,79 @@ Server.authenticateWithToken = function(token, userId, userName) {
 	this.setUserID(me.Id);
 	this.setUserName(me.Name ? me.Name : userName);
 	FileLog.write("Auth : signed in as " + this.getUserName() + " with a saved token");
+	return true;
+}
+
+//------------------------------------------------------------
+//      Quick Connect
+//------------------------------------------------------------
+// Lets the user approve this TV from a device that already has a keyboard,
+// instead of spelling a password out with the remote.
+
+Server.quickConnectEnabled = function() {
+	//Quiet, because an older server simply has no such endpoint and that is not
+	//worth an error on screen.
+	var result = Server.getContentQuiet(this.getServerAddr() + "/QuickConnect/Enabled");
+	return result === true;
+}
+
+// Asks the server to open a request. Returns {Code, Secret} or null.
+Server.quickConnectInitiate = function() {
+	var xmlHttp = new XMLHttpRequest();
+	if (!xmlHttp) { return null; }
+	try {
+		xmlHttp.open("POST", this.getServerAddr() + "/QuickConnect/Initiate", false);
+		xmlHttp = this.setRequestHeaders(xmlHttp);
+		xmlHttp.send(null);
+	} catch (e) {
+		FileLog.write("QuickConnect : initiate failed - " + e);
+		return null;
+	}
+	if (xmlHttp.status != 200) {
+		FileLog.write("QuickConnect : initiate returned HTTP " + xmlHttp.status);
+		return null;
+	}
+	return Server.parseResponse(xmlHttp.responseText);
+}
+
+// True once the user has approved the code elsewhere.
+Server.quickConnectApproved = function(secret) {
+	if (!secret) { return false; }
+	var url = this.getServerAddr() + "/QuickConnect/Connect?secret=" + encodeURIComponent(secret);
+	var state = Server.getContentQuiet(url);
+	return (state != null && state.Authenticated === true);
+}
+
+// Trades an approved secret for an access token, and signs in with it.
+Server.quickConnectAuthenticate = function(secret) {
+	var xmlHttp = new XMLHttpRequest();
+	if (!xmlHttp) { return false; }
+	try {
+		xmlHttp.open("POST", this.getServerAddr() + "/Users/AuthenticateWithQuickConnect", false);
+		xmlHttp = this.setRequestHeaders(xmlHttp);
+		xmlHttp.send(JSON.stringify({"Secret" : secret}));
+	} catch (e) {
+		FileLog.write("QuickConnect : authenticate failed - " + e);
+		return false;
+	}
+
+	//The server answers 404 while a secret is still unapproved, so this is only
+	//meaningful once quickConnectApproved has returned true.
+	if (xmlHttp.status != 200) {
+		FileLog.write("QuickConnect : authenticate returned HTTP " + xmlHttp.status);
+		return false;
+	}
+
+	var session = Server.parseResponse(xmlHttp.responseText);
+	if (session == null || session.User == null || !session.AccessToken) {
+		FileLog.write("QuickConnect : no session in the reply");
+		return false;
+	}
+
+	this.AuthenticationToken = session.AccessToken;
+	this.setUserID(session.User.Id);
+	this.setUserName(session.User.Name);
+	FileLog.write("QuickConnect : signed in as " + session.User.Name);
 	return true;
 }
 

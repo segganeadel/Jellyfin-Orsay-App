@@ -18,7 +18,8 @@ GuiUsers.getMaxDisplay = function() {
 
 GuiUsers.start = function(runAutoLogin) {
 	alert("Page Enter : GuiUsers");
-	GuiHelper.setControlButtons(null,null,null,null,"Exit  ");
+	//The coloured keys did real work here but were unlabelled, so nobody knew.
+	GuiHelper.setControlButtons("Quick Connect","Delete Users","Delete Passwords","Change Server","Exit  ");
 	Support.removeSplashScreen();
 	
 	//Reset Properties
@@ -310,6 +311,9 @@ GuiUsers.keyDown = function()
 				GuiPage_Servers.start();
 			}
 			break;	
+		case tvKey.KEY_RED:
+			GuiPage_QuickConnect.start();
+			break;
 		case tvKey.KEY_BLUE:
 			Server.setServerAddr("");
 			File.setServerEntry(null);
