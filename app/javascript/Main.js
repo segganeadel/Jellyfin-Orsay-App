@@ -158,86 +158,92 @@ Main.onLoad = function()
 	}
 	FileLog.write("Model Year is " + this.modelYear);
 	
-	if (phyConnection == 1 && http == 1 && gateway == 1) {
-		//Ask for the MAC of the interface actually in use - GetMAC(1) is the
-		//wired NIC, which returns nothing on a Wi-Fi only set.
-		var MAC = pluginNetwork.GetMAC(interfaceType);
-		if (MAC == false || MAC == null) {
-			MAC = null;
-		}
-		FileLog.write("MAC address is "+MAC);
-		Server.setDevice ("Samsung " + pluginTV.GetProductCode(0));
-
-	    //Load Settings File - Check if file needs to be deleted due to development
-	    var fileJson = File.readSettings();
-	    var version = File.checkVersion(fileJson);
-	    if (version == "Undefined" ) {
-	    	//Delete Settings file and reload
-	    	File.deleteSettingsFile();
-	    	fileJson = File.readSettings();
-	    } else if (version != this.version) {
-	    	if (this.forceDeleteSettings == true) {
-	    		//Delete Settings file and reload
-	    		File.deleteSettingsFile();
-		    	fileJson = File.readSettings();
-	    	} else {
-	    		//Update version in settings file to current version
-	    		fileJson.Version = this.version;
-	    	} 	File.writeAll(fileJson);
-	    }
-
-	    //Needs the settings file, so it has to come after the load above.
-	    //Seed from the DUID when we have a real MAC so an existing install keeps
-	    //its identity; otherwise a random per-install id is generated.
-	    Server.ensureDeviceID(MAC ? NNaviPlugin.GetDUID(MAC) : null);
-	    FileLog.write("Device ID is "+Server.getDeviceID());
-
-	    //Allow Evo Kit owners to override the model year.
-	    if (fileJson.TV !== undefined && fileJson.TV.ModelOverride !== undefined && fileJson.TV.ModelOverride != "None") {
-	    	switch(fileJson.TV.ModelOverride){
-	    	case "SEK1000":
-	    		this.modelYear = "F";
-	    		break;
-	    	case "SEK2000":
-	    		this.modelYear = "H";
-	    		break;
-	    	case "SEK2500":
-	    		this.modelYear = "H";
-	    		break;
-	    	}
-	    	FileLog.write("Model Year Override: " + this.modelYear);
-	    }
-	    
-	    //Check if Server exists
-	    if (fileJson.Servers.length > 1) {
-	    	//If no default show user Servers page (Can set default on that page)
-	    	var foundDefault = false;
-	    	for (var index = 0; index < fileJson.Servers.length; index++) {
-	    		if (fileJson.Servers[index].Default == true) {
-	    			foundDefault = true;
-	    			FileLog.write("Default server found.");
-	    			File.setServerEntry(index);
-	    			Server.testConnectionSettings(fileJson.Servers[index].Path,true);    				
-	    			break;
-	    		}
-	    	}
-	    	if (foundDefault == false) {
-	    		FileLog.write("Multiple servers defined. Loading the select server page.");
-	    		GuiPage_Servers.start();
-	    	}
-	    } else if (fileJson.Servers.length == 1) {
-	    	//If 1 server auto login with that
-			FileLog.write("Jellyfin server name found in settings. Auto-connecting.");
-	    	File.setServerEntry(0);
-	    	Server.testConnectionSettings(fileJson.Servers[0].Path,true);
-	    } else {
-	    	//No Server Defined - Load GuiPage_IP
-	    	FileLog.write("No server defined. Loading the new server page.");
-	    	GuiPage_NewServer.start();
-	    }
-	} else {
-		document.getElementById("pageContent").innerHTML = "You have no network connectivity to the TV - Please check the settings on the TV";
+	//These checks are advisory only, and deliberately do not gate startup.
+	//CheckHTTP tests general HTTP connectivity, which fails on a LAN that has no
+	//route to the internet - but this app only ever talks to a Jellyfin server
+	//on that same LAN, so an offline network is perfectly usable. Refusing to
+	//start left the user on a dead screen with no way forward.
+	if (phyConnection != 1 || http != 1 || gateway != 1) {
+		FileLog.write("Network checks reported physical=" + phyConnection +
+		              " http=" + http + " gateway=" + gateway + " - starting anyway");
 	}
+
+	//Ask for the MAC of the interface actually in use - GetMAC(1) is the
+	//wired NIC, which returns nothing on a Wi-Fi only set.
+	var MAC = pluginNetwork.GetMAC(interfaceType);
+	if (MAC == false || MAC == null) {
+		MAC = null;
+	}
+	FileLog.write("MAC address is "+MAC);
+	Server.setDevice ("Samsung " + pluginTV.GetProductCode(0));
+
+    //Load Settings File - Check if file needs to be deleted due to development
+    var fileJson = File.readSettings();
+    var version = File.checkVersion(fileJson);
+    if (version == "Undefined" ) {
+    	//Delete Settings file and reload
+    	File.deleteSettingsFile();
+    	fileJson = File.readSettings();
+    } else if (version != this.version) {
+    	if (this.forceDeleteSettings == true) {
+    		//Delete Settings file and reload
+    		File.deleteSettingsFile();
+	    	fileJson = File.readSettings();
+    	} else {
+    		//Update version in settings file to current version
+    		fileJson.Version = this.version;
+    	} 	File.writeAll(fileJson);
+    }
+
+    //Needs the settings file, so it has to come after the load above.
+    //Seed from the DUID when we have a real MAC so an existing install keeps
+    //its identity; otherwise a random per-install id is generated.
+    Server.ensureDeviceID(MAC ? NNaviPlugin.GetDUID(MAC) : null);
+    FileLog.write("Device ID is "+Server.getDeviceID());
+
+    //Allow Evo Kit owners to override the model year.
+    if (fileJson.TV !== undefined && fileJson.TV.ModelOverride !== undefined && fileJson.TV.ModelOverride != "None") {
+    	switch(fileJson.TV.ModelOverride){
+    	case "SEK1000":
+    		this.modelYear = "F";
+    		break;
+    	case "SEK2000":
+    		this.modelYear = "H";
+    		break;
+    	case "SEK2500":
+    		this.modelYear = "H";
+    		break;
+    	}
+    	FileLog.write("Model Year Override: " + this.modelYear);
+    }
+    
+    //Check if Server exists
+    if (fileJson.Servers.length > 1) {
+    	//If no default show user Servers page (Can set default on that page)
+    	var foundDefault = false;
+    	for (var index = 0; index < fileJson.Servers.length; index++) {
+    		if (fileJson.Servers[index].Default == true) {
+    			foundDefault = true;
+    			FileLog.write("Default server found.");
+    			File.setServerEntry(index);
+    			Server.testConnectionSettings(fileJson.Servers[index].Path,true);    				
+    			break;
+    		}
+    	}
+    	if (foundDefault == false) {
+    		FileLog.write("Multiple servers defined. Loading the select server page.");
+    		GuiPage_Servers.start();
+    	}
+    } else if (fileJson.Servers.length == 1) {
+    	//If 1 server auto login with that
+		FileLog.write("Jellyfin server name found in settings. Auto-connecting.");
+    	File.setServerEntry(0);
+    	Server.testConnectionSettings(fileJson.Servers[0].Path,true);
+    } else {
+    	//No Server Defined - Load GuiPage_IP
+    	FileLog.write("No server defined. Loading the new server page.");
+    	GuiPage_NewServer.start();
+    }
 };
 
 Main.initKeys = function() {
