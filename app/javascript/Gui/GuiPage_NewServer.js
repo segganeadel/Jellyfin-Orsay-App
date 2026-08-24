@@ -1,9 +1,17 @@
 var GuiPage_NewServer = {
 	elementIds : [ "1","2","3","4","port","host"],
-	inputs : [ null,null,null,null,null],
-	ready : [ false,false,false,false,false],
-
+	//One slot per field. These were five long against six ids, and the
+	//next/previous arithmetic divided by this length, so the hostname box was
+	//left out of the cycle entirely.
+	inputs : [ null,null,null,null,null,null ],
+	//Named apart from the ready() function below. It used to be called "ready"
+	//as well, so the function replaced the array on load: every read of
+	//ready[i] returned undefined, undefined == false is false, and focus was
+	//therefore granted as soon as the first field initialised instead of the
+	//last - leaving the others still being set up.
+	inputReady : [ false,false,false,false,false,false ]
 }
+
 
 GuiPage_NewServer.start = function() {
 	FileLog.write("Page : GuiPage_NewServer");
@@ -26,6 +34,9 @@ GuiPage_NewServer.start = function() {
 	Support.fadeImage("images/bg1.jpg");
 	Support.removeSplashScreen();
 
+	//Coming back to this page must start the readiness flags afresh.
+	for (var r = 0; r < GuiPage_NewServer.inputReady.length; r++) { GuiPage_NewServer.inputReady[r] = false; }
+
 	//Prepare all input elements for IME
 	GuiPage_NewServer.createInputObjects();
 	//IME keys are registered once for the whole app in Main.initKeys.
@@ -33,36 +44,33 @@ GuiPage_NewServer.start = function() {
 
 //Prepare all input elements for IME on Load!
 GuiPage_NewServer.createInputObjects = function() {
-	var previousIndex = 0;
-	var nextIndex = 0;
-    for (var index in this.elementIds) {
-    	previousIndex = index - 1;
-        if (previousIndex < 0) {
-            previousIndex = GuiPage_NewServer.inputs.length - 1;
-        }
-        
-        nextIndex = (previousIndex + 2) % GuiPage_NewServer.inputs.length;
-        GuiPage_NewServer.inputs[index] = new GuiPage_NewServer_Input(this.elementIds[index],this.elementIds[previousIndex], this.elementIds[nextIndex]);
-    }
+	//Straightforward ring over every field, so right from the port reaches the
+	//hostname and round to the first octet. The old arithmetic divided by a
+	//five-long array while there are six fields, which left the hostname out.
+	var count = this.elementIds.length;
+	for (var index = 0; index < count; index++) {
+		var previousIndex = (index - 1 + count) % count;
+		var nextIndex = (index + 1) % count;
+		GuiPage_NewServer.inputs[index] = new GuiPage_NewServer_Input(
+			this.elementIds[index], this.elementIds[previousIndex], this.elementIds[nextIndex]);
+	}
 }
 
-//Function to check if IME is ready, and when so sets focus on first element in array
+//Called as each field's keypad finishes initialising. Focus is only taken once
+//every field is ready, otherwise the user lands in a box whose keypad has not
+//finished binding its keys.
 GuiPage_NewServer.ready = function(id) {
-    var ready = true;
- 
-    for (var i in GuiPage_NewServer.elementIds) {
-        if (GuiPage_NewServer.elementIds[i] == id) {
-        	GuiPage_NewServer.ready[i] = true;
-        }
-        
-        if (GuiPage_NewServer.ready[i] == false) {
-            ready = false;
-        }
-    }
-   
-    if (ready) {
-        document.getElementById(GuiPage_NewServer.elementIds[0]).focus();
-    }
+	for (var i = 0; i < GuiPage_NewServer.elementIds.length; i++) {
+		if (GuiPage_NewServer.elementIds[i] == id) {
+			GuiPage_NewServer.inputReady[i] = true;
+		}
+	}
+
+	for (var j = 0; j < GuiPage_NewServer.inputReady.length; j++) {
+		if (GuiPage_NewServer.inputReady[j] !== true) { return; }
+	}
+
+	document.getElementById(GuiPage_NewServer.elementIds[0]).focus();
 }
 
 //Function to delete all the contents of the boxes
