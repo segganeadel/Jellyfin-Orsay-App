@@ -190,7 +190,6 @@ GuiMusicPlayer.updateSelectedItem = function() {
 
 GuiMusicPlayer.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 	
 	//Returning from blank screen
 	if (document.getElementById("everything").style.visibility=="hidden") {
@@ -241,7 +240,6 @@ GuiMusicPlayer.keyDown = function() {
 			break;
 		case tvKey.KEY_ENTER:	
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER-player");
 			switch (this.selectedItem) {
 				/*case 0:
 					//Hide the music player.
@@ -278,7 +276,6 @@ GuiMusicPlayer.keyDown = function() {
 		case tvKey.KEY_DOWN:
 		case tvKey.KEY_RETURN:
 		case tvKey.KEY_BLUE:	
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			if (this.Status == "PAUSED") {
 				this.handleStopKey();
@@ -309,7 +306,6 @@ GuiMusicPlayer.keyDown = function() {
 			}
 			break;
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}
@@ -357,7 +353,6 @@ GuiMusicPlayer.handlePauseKey = function() {
 GuiMusicPlayer.stopPlayback = function() {
 	//Reset everything
 	this.Status = "STOPPED";
-	alert (this.currentPlayingItem);
 	Server.videoStopped(this.queuedItems[this.currentPlayingItem].Id,this.queuedItems[this.currentPlayingItem].MediaSources[0].Id,this.currentTime,"DirectStream",this.PlaySessionId);
 	this.showThemeId = null;
 	this.isThemeMusicPlaying = false;
@@ -374,7 +369,6 @@ GuiMusicPlayer.stopPlayback = function() {
 }
 
 GuiMusicPlayer.handleStopKey = function() {
-	alert ("STOPPING PLAYBACK");
 	this.stopPlayback();
 	GuiHelper.setControlButtons(0,0,0,null,0);
 	this.returnToPage();
@@ -423,7 +417,6 @@ GuiMusicPlayer.handleNextKey = function() {
 	} else {
 		//Play Next Item
 		this.videoURL = Server.getServerAddr() + '/Audio/'+this.queuedItems[this.currentPlayingItem].Id+'/Stream.mp3?static=true&MediaSource='+this.queuedItems[this.currentPlayingItem].MediaSources[0].Id + '&api_key=' + Server.getAuthToken();
-		alert ("Next " + this.videoURL);
 		//Start Playback
 		this.handlePlayKey();
 	}
@@ -497,7 +490,6 @@ GuiMusicPlayer.handlePlaylistKey = function() {
 //--------------------------------------------------------------------------------------------------
 
 GuiMusicPlayer.handleOnRenderingComplete = function() {
-	alert ("File complete")
 	this.handleNextKey();
 }
 

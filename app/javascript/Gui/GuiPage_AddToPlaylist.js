@@ -24,7 +24,7 @@ GuiPage_AddToPlaylist.getMaxDisplay = function() {
 }
 
 GuiPage_AddToPlaylist.start=function(itemId, playedFromPage, mediaType) {
-	alert("Page Enter : GuiPage_AddToPlaylist");
+	FileLog.write("Page : GuiPage_AddToPlaylist");
 	
 	//Update page called from
 	this.playedFromPage = playedFromPage;
@@ -95,7 +95,6 @@ GuiPage_AddToPlaylist.updateSelectedItems = function() {
 
 GuiPage_AddToPlaylist.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -132,13 +131,11 @@ GuiPage_AddToPlaylist.keyDown = function() {
 			this.processSelectedItem();
 			break;	
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			document.getElementById("guiPlayListContainer").style.visibility = "hidden";
 			document.getElementById(this.playedFromPage).focus();
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 		default:
@@ -223,18 +220,15 @@ var GuiPage_AddToPlaylist_Input  = function(id) {
 	ime.setKeypadChangeFunc('12key',onSwitchTo12key);
 	
 	function onSwitchToQwerty(arg){
-		alert("IME selected:"+arg);
 		document.getElementById("guiPlayListContainer").className = "playlistContainerQwerty";
 	}
 	
 	function onSwitchTo12key(arg){
-		alert("IME selected:"+arg);
 		document.getElementById("guiPlayListContainer").className = "playlistContainer12key";
 	}
 	    
 	var installFocusKeyCallbacks = function () {
 	    ime.setKeyFunc(tvKey.KEY_ENTER, function (keyCode) {
-	        alert("Enter key pressed");    
 	        
 	        var playlist = Support.trimInput(document.getElementById("guiPlayListNew").value);
 	        if (playlist == "") {

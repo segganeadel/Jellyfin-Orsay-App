@@ -22,12 +22,12 @@ GuiPage_Photos.getMaxDisplay = function() {
 }
 
 GuiPage_Photos.start = function(title,url,selectedItem,topLeftItem) {
-	alert("Page Enter : GuiPage_Photos");
+	FileLog.write("Page : GuiPage_Photos");
 	
 	//Save Start Params	
 	this.startParams = [title,url];
 	
-	alert (url);
+	FileLog.write("URL : " + url);
 	
 	//Reset Values
 	this.indexSeekPos = -1;
@@ -161,7 +161,6 @@ GuiPage_Photos.updateSelectedItems = function () {
 
 GuiPage_Photos.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -189,19 +188,15 @@ GuiPage_Photos.keyDown = function() {
 	switch(keyCode) {
 		//Need Logout Key
 		case tvKey.KEY_LEFT:
-			alert("LEFT");	
 			this.processLeftKey();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");	
 			this.processRightKey();
 			break;		
 		case tvKey.KEY_UP:
-			alert("UP");
 			this.processUpKey();
 			break;	
 		case tvKey.KEY_DOWN:
-			alert("DOWN");
 			this.processDownKey();
 			break;	
 		case tvKey.KEY_PANEL_CH_UP: 
@@ -213,13 +208,11 @@ GuiPage_Photos.keyDown = function() {
 			this.processChannelDownKey();
 			break;	
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;
 		case tvKey.KEY_PLAY:
@@ -248,7 +241,6 @@ GuiPage_Photos.keyDown = function() {
 			this.openMenu();
 			break;
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent(); 
 			break;
 	}
@@ -266,7 +258,6 @@ GuiPage_Photos.playSelectedItem = function () {
 
 GuiPage_Photos.openMenu = function() {
 	Support.updateURLHistory("GuiPage_Photos",this.startParams[0],this.startParams[1],null,null,this.selectedItem,this.topLeftItem,null);
-	alert(this.selectedItem);
 	GuiMainMenu.requested("GuiPage_Photos",this.ItemData.Items[this.selectedItem].Id);
 }
 

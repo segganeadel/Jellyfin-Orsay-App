@@ -120,7 +120,6 @@ File.saveServerToFile = function(Id,Name,ServerIP) {
 			if (Id == fileJson.Servers[index].Id) {
 				this.ServerEntry = index;
 				serverExists = true;
-				alert ("Server already exists in file - not adding - Server Entry: " + this.ServerEntry);
 			}
 		}
 		
@@ -131,7 +130,6 @@ File.saveServerToFile = function(Id,Name,ServerIP) {
 			if (openWrite) {
 				openWrite.writeLine(JSON.stringify(fileJson)); 
 				fileSystemObj.closeCommonFile(openWrite); 
-				alert ("Server added to file - Server Entry: " + this.ServerEntry);
 			}
 		}	
 	}

@@ -25,10 +25,10 @@ GuiDisplay_Episodes.getMaxDisplay = function() {
 }
 
 GuiDisplay_Episodes.start = function(title,url,selectedItem,topLeftItem) {	
-	alert("Page Enter : GuiDisplay_Episodes");
+	FileLog.write("Page : GuiDisplay_Episodes");
 	//Save Start Params	
 	this.startParams = [title,url];
-	alert (url);
+	FileLog.write("URL : " + url);
 	//Reset Values
 	this.indexSeekPos = -1;
 	this.selectedItem = selectedItem;
@@ -271,7 +271,6 @@ GuiDisplay_Episodes.updateSelectedBannerItems = function() {
 
 GuiDisplay_Episodes.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -298,19 +297,15 @@ GuiDisplay_Episodes.keyDown = function() {
 	
 	switch(keyCode) {	
 		case tvKey.KEY_UP:
-			alert("UP");
 			this.processUpKey();
 			break;	
 		case tvKey.KEY_DOWN:
-			alert("DOWN");
 			this.processDownKey();
 			break;	
 		case tvKey.KEY_LEFT:
-			alert("LEFT");
 			this.processLeftKey();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");
 			this.processRightKey();
 			break;	
 		case tvKey.KEY_PANEL_CH_UP: 
@@ -322,13 +317,11 @@ GuiDisplay_Episodes.keyDown = function() {
 			this.processChannelDownKey();
 			break;	
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;
 		case tvKey.KEY_PLAY:
@@ -375,7 +368,6 @@ GuiDisplay_Episodes.keyDown = function() {
 			this.openMenu();
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent(); 
 			break;
 	}

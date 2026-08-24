@@ -7,7 +7,7 @@ GuiPage_Contributors.onFocus = function() {
 }
 
 GuiPage_Contributors.start = function() {
-	alert("Page Enter : GuiPage_Contributors");
+	FileLog.write("Page : GuiPage_Contributors");
 	
 	document.getElementById("Counter").innerHTML = Main.version;
 	document.getElementById("guiReturnButton").style.visibility = "";
@@ -35,7 +35,6 @@ GuiPage_Contributors.start = function() {
 
 GuiPage_Contributors.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -62,11 +61,9 @@ GuiPage_Contributors.keyDown = function() {
 	
 	switch(keyCode) {
 		case tvKey.KEY_LEFT:
-			alert("LEFT");
 			this.openMenu();
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
@@ -78,7 +75,6 @@ GuiPage_Contributors.keyDown = function() {
 			this.openMenu();
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent(); 
 			break;
 	}

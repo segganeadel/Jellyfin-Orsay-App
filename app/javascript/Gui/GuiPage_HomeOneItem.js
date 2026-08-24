@@ -29,7 +29,7 @@ GuiPage_HomeOneItem.onFocus = function() {
 }
 	
 GuiPage_HomeOneItem.start = function(title,url,selectedItem,topLeftItem) {	
-	alert("Page Enter : GuiPage_HomeOneItem");
+	FileLog.write("Page : GuiPage_HomeOneItem");
 	
 	//Save Start Params	
 	this.startParams = [title,url];
@@ -162,7 +162,6 @@ GuiPage_HomeOneItem.updateSelectedBannerItems = function() {
 
 GuiPage_HomeOneItem.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 	
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -190,19 +189,15 @@ GuiPage_HomeOneItem.keyDown = function() {
 	switch(keyCode) {
 		//Need Logout Key
 		case tvKey.KEY_LEFT:
-			alert("LEFT");	
 			this.processLeftKey();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");	
 			this.processRightKey();
 			break;		
 		case tvKey.KEY_UP:
-			alert("UP");
 			this.processUpKey();
 			break;	
 		case tvKey.KEY_DOWN:
-			alert("DOWN");
 			this.processDownKey();
 			break;	
 		case tvKey.KEY_PANEL_CH_UP: 
@@ -214,13 +209,11 @@ GuiPage_HomeOneItem.keyDown = function() {
 			this.processChannelDownKey();
 			break;	
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;
 		case tvKey.KEY_PLAY:
@@ -275,7 +268,6 @@ GuiPage_HomeOneItem.keyDown = function() {
 			this.openMenu();
 			break;
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent(); 
 			break;
 	}

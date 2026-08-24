@@ -67,7 +67,6 @@ GuiMainMenu.start = function() {
 	//Convert views in http format to viewnames for settings in versions <=2.1.3
 	var url1 = File.getUserProperty("View1");
 	if (url1.substring(0,4) == "http") {
-		alert("Converting View1");
 		File.setUserProperty("View1","TVNextUp");
 		File.setUserProperty("View1Name","Next Up");
 	}
@@ -75,7 +74,6 @@ GuiMainMenu.start = function() {
 	var url2 = File.getUserProperty("View2");
 	if (url2) {
 		if (url2.substring(0,4) == "http") {
-			alert("Converting View2");
 			File.setUserProperty("View2","LatestMovies");
 			File.setUserProperty("View2Name","Latest Movies");
 		}
@@ -143,7 +141,6 @@ GuiMainMenu.updateSelectedItems = function () {
 GuiMainMenu.keyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -171,16 +168,13 @@ GuiMainMenu.keyDown = function()
 	switch(keyCode)
 	{	
 		case tvKey.KEY_UP:
-			alert("Up");
 			this.processUpKey();
 			break;	
 		case tvKey.KEY_DOWN:
-			alert("DOWN");
 			this.processDownKey();
 			break;		
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItems();
 			break;
 		case tvKey.KEY_PLAY:
@@ -197,7 +191,6 @@ GuiMainMenu.keyDown = function()
 			//this.toggleTestMode();
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent(); 
 			break;
 	}

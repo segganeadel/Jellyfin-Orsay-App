@@ -99,26 +99,20 @@ Support.updateURLHistory = function(page,title,url,title2,url2,selectedItem,topL
 		
 		if (this.previousPageDetails[this.previousPageDetails.length-1][2] != url) {
 			this.previousPageDetails.push([page,title,url,title2,url2,selectedItem,topLeftItem,isTop]);
-			alert ("Adding new item: " + this.previousPageDetails.length);
 		} else {
 			if (this.previousPageDetails[this.previousPageDetails.length-1][0] != page) {
 				//Required! Trust me dont remove this if!
 				this.previousPageDetails.push([page,title,url,title2,url2,selectedItem,topLeftItem,isTop]);
-				alert ("Adding new item: " + this.previousPageDetails.length);
-			} else {
-				alert ("New Item not added - Is duplicate of previous page: " + this.previousPageDetails.length);
-			}		
+			}
 		}
 	} else {
 		this.previousPageDetails.push([page,title,url,title2,url2,selectedItem,topLeftItem,isTop]);
-		alert ("Adding new item: " + this.previousPageDetails.length);
 	}
 }
 
 //Below method used for Main Menu & Playlist Deletion
 Support.removeLatestURL = function() {
 	this.previousPageDetails.pop();
-	alert ("Removed item: " + this.previousPageDetails.length);
 }
 
 Support.removeAllURLs = function() {
@@ -126,7 +120,6 @@ Support.removeAllURLs = function() {
 }
 	
 Support.processReturnURLHistory = function() {
-	alert ("Just before removing item" + this.previousPageDetails.length);
 	
 	//Reset Help 
 	document.getElementById("Help").style.visibility = "hidden";
@@ -209,7 +202,6 @@ Support.processReturnURLHistory = function() {
 		
 		this.previousPageDetails.pop();
 		
-		alert ("Just after removing item" + this.previousPageDetails.length);
 	} else {
 		widgetAPI.sendReturnEvent();
 	}
@@ -573,7 +565,7 @@ Support.updateDisplayedItems = function(Items,selectedItemID,startPos,endPos,Div
 				}			
 			//----------------------------------------------------------------------------------------------
 			} else {
-				alert("Unhandled Item type: "+Items[index].Type)
+				FileLog.write("Unhandled item type: " + Items[index].Type);
 				var title = Items[index].Name;		
 				if (Items[index].ImageTags.Thumb) {		
 					var imgsrc = Server.getImageURL(Items[index].Id,"Thumb",Main.posterWidth,Main.posterHeight,0,false,0);
@@ -720,7 +712,6 @@ Support.processSelectedItem = function(page,ItemData,startParams,selectedItem,to
 		
 	}
 	if (ItemData.Items[selectedItem].CollectionType != null) {
-		alert("CollectionType: "+ItemData.Items[selectedItem].CollectionType);
 		switch (ItemData.Items[selectedItem].CollectionType) {
 		case "boxsets":	
 			//URL Below IS TEMPORARY TO GRAB SERIES OR FILMS ONLY - IN FUTURE SHOULD DISPLAY ALL
@@ -761,7 +752,7 @@ Support.processSelectedItem = function(page,ItemData,startParams,selectedItem,to
 			break;
 		}
 	} else {
-		alert("Type: "+ItemData.Items[selectedItem].Type +" MeidaType: "+ItemData.Items[selectedItem].MediaType);
+		//removed: development type dump
 		switch (ItemData.Items[selectedItem].Type) {
 		case "ManualCollectionsFolder":
 			var url = Server.getChildItemsURL(ItemData.Items[selectedItem].Id,"&fields=ParentId,SortName,Overview,Genres,RunTimeTicks");
@@ -863,9 +854,6 @@ Support.playSelectedItem = function(page,ItemData,startParams,selectedItem,topLe
 	startParams[2] = (startParams[2] === undefined) ? null : startParams[2];
 	startParams[3] = (startParams[3] === undefined) ? null : startParams[3];
 	
-	alert ("playSelectedItem: CollectionType "+ItemData.Items[selectedItem].CollectionType);
-	alert ("playSelectedItem: MediaType "+ItemData.Items[selectedItem].MediaType);
-	alert ("playSelectedItem: Type "+ItemData.Items[selectedItem].Type);
 	if (ItemData.Items[selectedItem].Type == "Folder") {
 		if (page == "GuiPage_Photos") {
 			Support.updateURLHistory(page,startParams[0],startParams[1],startParams[2],startParams[3],selectedItem,topLeftItem,isTop);
@@ -1103,7 +1091,6 @@ Support.generateTopMenu = function() {
 }
 
 Support.initViewUrls = function() {
-	alert("Initialising View URL's for this user");
 	this.TVNextUp = Server.getServerAddr() + "/Shows/NextUp?format=json&UserId="+Server.getUserID()+"&IncludeItemTypes=Episode&ExcludeLocationTypes=Virtual&Limit=24&Fields=PrimaryImageAspectRatio,SeriesInfo,DateCreated,SyncInfo,SortName&ImageTypeLimit=1&EnableImageTypes=Primary,Backdrop,Banner,Thumb&EnableTotalRecordCount=false";
 	this.Favourites = Server.getItemTypeURL("&SortBy=SortName&SortOrder=Ascending&Filters=IsFavorite&fields=SortName&recursive=true");
 	this.FavouriteMovies = Server.getServerAddr() + "/Users/"+Server.getUserID()+"/Items?format=json&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Movie"+Server.getMoviesViewQueryPart()+"&Filters=IsFavorite&Limit=10&Recursive=true&Fields=PrimaryImageAspectRatio,SyncInfo&CollapseBoxSetItems=false&ExcludeLocationTypes=Virtual";
@@ -1116,7 +1103,6 @@ Support.initViewUrls = function() {
 }
 
 Support.getViewUrl = function(viewName) {
-	alert("returning url for "+viewName+" : "+this[viewName]);
 
 	return this[viewName];
 }
@@ -1378,7 +1364,6 @@ Support.pageLoadTimes = function(page,process,reset) {
 
 Support.noitemskeyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -1405,12 +1390,10 @@ Support.noitemskeyDown = function() {
 	
 	switch(keyCode){
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;		
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}

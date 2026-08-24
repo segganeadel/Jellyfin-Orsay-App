@@ -20,7 +20,6 @@ GuiImagePlayer_Screensaver.kill = function() {
 
 GuiImagePlayer_Screensaver.start = function() {
 	this.imagesToUse = File.getUserProperty("ScreensaverImages");
-	alert(this.imagesToUse);
 	this.images = []
 	this.overlay = []
 	this.imageIdx = 0

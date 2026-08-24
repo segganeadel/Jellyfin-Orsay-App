@@ -38,7 +38,7 @@ GuiPage_MusicArtist.getMaxDisplay2 = function() {
 }
 
 GuiPage_MusicArtist.start = function(title1, url1, selectedItem, topLeftItem) {
-	alert("Page Enter : GuiPage_MusicArtist");
+	FileLog.write("Page : GuiPage_MusicArtist");
 	
 	//Save Start Vars
 	Support.pageLoadTimes("GuiPage_MusicArtist","Start",true);
@@ -198,7 +198,6 @@ GuiPage_MusicArtist.updateSelectedItems = function (bypassCounter) {
 
 GuiPage_MusicArtist.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -225,20 +224,16 @@ GuiPage_MusicArtist.keyDown = function() {
 	
 	switch(keyCode){
 		case tvKey.KEY_LEFT:
-			alert("LEFT");	
 			this.processTopMenuLeftKey();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");	
 			this.processTopMenuRightKey();
 			break;
 		case tvKey.KEY_DOWN:
-			alert ("DOWN");
 			this.processTopMenuDownKey();
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processTopMenuEnterKey();
 			break;		
 		case tvKey.KEY_RED:
@@ -254,7 +249,6 @@ GuiPage_MusicArtist.keyDown = function() {
 			break;
 		case tvKey.KEY_RETURN:
 			clearTimeout(this.timeout)
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;
@@ -277,7 +271,6 @@ GuiPage_MusicArtist.keyDown = function() {
 			break;	
 		case tvKey.KEY_EXIT:
 			clearTimeout(this.timeout)
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}
@@ -408,7 +401,6 @@ GuiPage_MusicArtist.processTopMenuDownKey = function() {
 }
 
 GuiPage_MusicArtist.processTopMenuEnterKey = function() {
-	alert ("TopMenuEnterKey");
 	if (this.selectedItem == -1) {
 		Support.enterMusicPage(this.bannerItems[this.selectedBannerItem]);
 	} else {
@@ -445,7 +437,6 @@ GuiPage_MusicArtist.updateSelectedItems2 = function (bypassCounter) {
 
 GuiPage_MusicArtist.bottomKeyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -472,7 +463,6 @@ GuiPage_MusicArtist.bottomKeyDown = function() {
 	
 	switch(keyCode) {
 		case tvKey.KEY_LEFT:
-			alert("LEFT BOTTOM");	
 			this.selectedItem2--;
 			if (this.selectedItem2 == -1) {
 				this.selectedItem2 = 0; //Going left from bottom items row.
@@ -492,7 +482,6 @@ GuiPage_MusicArtist.bottomKeyDown = function() {
 			this.updateSelectedItems2();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT BOTTOM");	
 			this.selectedItem2++;
 			if (this.selectedItem2 >= this.ItemData2.Items.length) {
 				this.selectedItem2--;
@@ -505,7 +494,6 @@ GuiPage_MusicArtist.bottomKeyDown = function() {
 			this.updateSelectedItems2();
 			break;
 		case tvKey.KEY_UP:
-			alert("UP BOTTOM");
 			this.selectedItem2 = -1;
 			this.updateSelectedItems2(true);	
 			this.topLeftItem2 = 0;
@@ -516,7 +504,6 @@ GuiPage_MusicArtist.bottomKeyDown = function() {
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER BOTTOM");
 			this.processSelectedItem();
 			break;	
 		case tvKey.KEY_PLAY:
@@ -542,7 +529,6 @@ GuiPage_MusicArtist.bottomKeyDown = function() {
 			break;
 		case tvKey.KEY_RETURN:
 			//In this instance handle return to go up to the top menu
-			alert("RETURN BOTTOM");
 			widgetAPI.blockNavigation(event);
 			this.selectedItem2 = 0;
 			this.topLeftItem2 = 0;
@@ -561,7 +547,6 @@ GuiPage_MusicArtist.bottomKeyDown = function() {
 			GuiMusicPlayer.showMusicPlayer("GuiPage_MusicArtistBottom",this.divprepend2 + this.ItemData2.Items[this.selectedItem2].Id,document.getElementById(this.divprepend2 + this.ItemData2.Items[this.selectedItem2].Id).className);
 			break;		
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY BOTTOM");
 			widgetAPI.sendExitEvent();
 			break;
 	}

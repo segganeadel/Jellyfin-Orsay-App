@@ -25,7 +25,7 @@ GuiPage_Playlist.getMaxDisplay = function() {
 //------------------------------------------------------------
 
 GuiPage_Playlist.start = function(title,url,type,playlistId) { //Type is either Audio or Video
-	alert("Page Enter : GuiPage_Playlist");
+	FileLog.write("Page : GuiPage_Playlist");
 	GuiHelper.setControlButtons(null,null,null,GuiMusicPlayer.Status == "PLAYING" || GuiMusicPlayer.Status == "PAUSED" ? "Music" : null,"Return");
 	
 	//Save Start Params
@@ -177,7 +177,6 @@ GuiPage_Playlist.updateSelectedItems = function () {
 
 GuiPage_Playlist.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 	
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -220,13 +219,11 @@ GuiPage_Playlist.keyDown = function() {
 			}
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;	
 		case tvKey.KEY_TOOLS:
@@ -244,7 +241,6 @@ GuiPage_Playlist.keyDown = function() {
 			}
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}
@@ -332,7 +328,6 @@ GuiPage_Playlist.processRightKey = function() {
 }
 
 GuiPage_Playlist.processSelectedItem = function() {
-	alert("List item = " + this.selectedItem + " : Menu item = " + this.selectedItem2);
 	if (this.selectedItem == -1) {
 		//Is Top Menu Bar
 		switch (this.selectedItem2) {
@@ -390,7 +385,7 @@ GuiPage_Playlist.processSelectedItem = function() {
 				GuiPage_ItemDetails.start(this.AlbumData.Items[this.selectedItem].Name,url,0);
 			} else if (this.startParams[2] == "Audio"){
 				var url = Server.getChildItemsURL(this.AlbumData.Items[this.selectedItem].AlbumId,"&SortBy=SortName&SortOrder=Ascending&IncludeItemTypes=Audio&Recursive=true&CollapseBoxSetItems=false");
-				alert (url);
+				FileLog.write("URL : " + url);
 				GuiPage_Music.start(this.AlbumData.Items[this.selectedItem].Name,url,"MusicAlbum");
 			}
 			
@@ -409,7 +404,6 @@ GuiPage_Playlist.processSelectedItem = function() {
 GuiPage_Playlist.deletePlaylist = function (playlistId) {
 	var ids = "";
 	for(var index = 0; index < this.AlbumData.Items.length; index++) {
-		alert (this.AlbumData.Items[index].PlaylistItemId);
 		ids += this.AlbumData.Items[index].PlaylistItemId + ",";
 	}
 	ids = ids.substring(0, ids.length-1);

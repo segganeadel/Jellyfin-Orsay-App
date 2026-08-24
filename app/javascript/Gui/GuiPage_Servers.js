@@ -13,7 +13,7 @@ GuiPage_Servers.getMaxDisplay = function() {
 }
 
 GuiPage_Servers.start = function(runAutoLogin) {
-	alert("Page Enter : GuiPage_Servers");
+	FileLog.write("Page : GuiPage_Servers");
 	GuiHelper.setControlButtons("Default ",null,null,"Delete","Exit");
 	
 	//Reset Properties
@@ -78,7 +78,6 @@ GuiPage_Servers.processSelectedUser = function () {
 GuiPage_Servers.keyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -91,11 +90,9 @@ GuiPage_Servers.keyDown = function()
 	switch(keyCode)
 	{
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.sendReturnEvent();
 			break;
 		case tvKey.KEY_LEFT:
-			alert("LEFT");	
 			this.selectedItem--;
 			if (this.selectedItem < 0) {
 				this.selectedItem = this.ServerData.Servers.length - 1;
@@ -117,7 +114,6 @@ GuiPage_Servers.keyDown = function()
 			this.updateSelectedUser();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");	
 			this.selectedItem++;
 			if (this.selectedItem >= this.ServerData.Servers.length) {
 				this.selectedItem = 0;
@@ -143,7 +139,6 @@ GuiPage_Servers.keyDown = function()
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			GuiPage_Servers.processSelectedUser();
 			break;	
 		case tvKey.KEY_RED:
@@ -156,11 +151,9 @@ GuiPage_Servers.keyDown = function()
 			File.deleteServer(this.selectedItem);
 			break;
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 		default:
-			alert("Unhandled key");
 			break;
 	}
 };

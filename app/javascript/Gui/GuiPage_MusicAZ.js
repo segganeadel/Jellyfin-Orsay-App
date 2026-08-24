@@ -26,7 +26,7 @@ GuiPage_MusicAZ.getMaxDisplay = function() {
 
 
 GuiPage_MusicAZ.start = function(entryView,selectedItem) {
-	alert("Page Enter : GuiPage_MusicAZ");
+	FileLog.write("Page : GuiPage_MusicAZ");
 	
 	//Save Start Vars
 	this.startParams = [entryView];
@@ -45,7 +45,6 @@ GuiPage_MusicAZ.start = function(entryView,selectedItem) {
 		
 	//Reset Vars
 	this.selectedItem = (selectedItem == -1) ? 0 : selectedItem;
-	alert ("MusixcAZ Selected: " + this.selectedItem);
 	this.topLeftItem = 0;
 	
 	//Proceed as Normal	
@@ -142,7 +141,6 @@ GuiPage_MusicAZ.updateSelectedBannerItems = function() {
 
 GuiPage_MusicAZ.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -169,20 +167,16 @@ GuiPage_MusicAZ.keyDown = function() {
 	
 	switch(keyCode){
 		case tvKey.KEY_LEFT:
-			alert("LEFT");	
 			this.processTopMenuLeftKey();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");	
 			this.processTopMenuRightKey();
 			break;
 		case tvKey.KEY_DOWN:
-			alert ("DOWN");
 			this.processTopMenuDownKey();
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processTopMenuEnterKey();
 			break;		
 		case tvKey.KEY_RED:
@@ -197,7 +191,6 @@ GuiPage_MusicAZ.keyDown = function() {
 			this.openMenu();
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;		
@@ -214,7 +207,6 @@ GuiPage_MusicAZ.keyDown = function() {
 			}
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}
@@ -347,7 +339,6 @@ GuiPage_MusicAZ.processTopMenuDownKey = function() {
 }
 
 GuiPage_MusicAZ.processTopMenuEnterKey = function() {
-	alert ("TopMenuEnterKey");
 	clearTimeout(this.backdropTimeout);
 	
 	//Add URL History

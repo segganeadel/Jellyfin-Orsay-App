@@ -17,7 +17,7 @@ GuiUsers.getMaxDisplay = function() {
 }
 
 GuiUsers.start = function(runAutoLogin) {
-	alert("Page Enter : GuiUsers");
+	FileLog.write("Page : GuiUsers");
 	//The coloured keys did real work here but were unlabelled, so nobody knew.
 	GuiHelper.setControlButtons("Quick Connect","Delete Users","Delete Passwords","Change Server","Exit  ");
 	Support.removeSplashScreen();
@@ -213,7 +213,6 @@ GuiUsers.processSelectedUser = function () {
 GuiUsers.keyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -227,7 +226,6 @@ GuiUsers.keyDown = function()
 	{
 		case tvKey.KEY_RETURN:
 		case tvKey.KEY_PANEL_RETURN:
-			alert("RETURN");
 			widgetAPI.sendReturnEvent();
 			break;
 		case tvKey.KEY_UP:
@@ -260,7 +258,6 @@ GuiUsers.keyDown = function()
 			}
 			break;
 		case tvKey.KEY_LEFT:
-			alert("LEFT");
 			if (this.selectedRow == 0) {
 				this.selectedUser--;
 				if (this.selectedUser < 0) {
@@ -284,7 +281,6 @@ GuiUsers.keyDown = function()
 			}
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");	
 			if (this.selectedRow == 0) {
 				this.selectedUser++;
 				if (this.selectedUser >= this.UserData.length) {
@@ -302,7 +298,6 @@ GuiUsers.keyDown = function()
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			if (this.selectedRow == 0) {
 				GuiUsers.processSelectedUser();
 			} else if (this.selectedRow == 1) {
@@ -328,16 +323,13 @@ GuiUsers.keyDown = function()
 			File.deleteAllUsers();
 			break;		
 		case tvKey.RETURN:
-			alert ("RETURN KEY");
 			widgetAPI.blockNavigation(event);
         	GuiUsers.start();
 			break;
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 		default:
-			alert("Unhandled key");
 			break;
 	}
 };
@@ -358,7 +350,6 @@ var GuiUsers_Input  = function(id) {
         
     var installFocusKeyCallbacks = function () {
         ime.setKeyFunc(tvKey.KEY_ENTER, function (keyCode) {
-            alert("Enter key pressed");    
            
             //Save pwd value first, then wipe for next use
             var pwd = document.getElementById("guiUsers_Password").value;
@@ -417,7 +408,6 @@ GuiUsers.IMEAuthenticate = function(password) {
 
 GuiUsers.keyDownPassword = function() {
 		var keyCode = event.keyCode;
-		alert("Key pressed: " + keyCode);
 
 		if (document.getElementById("Notifications").style.visibility == "") {
 			document.getElementById("Notifications").style.visibility = "hidden";
@@ -431,7 +421,6 @@ GuiUsers.keyDownPassword = function() {
 		{
 			case tvKey.KEY_RETURN:
 			case tvKey.KEY_PANEL_RETURN:
-				alert("RETURN");
 				widgetAPI.sendReturnEvent();
 				break;
 			case tvKey.KEY_UP:
@@ -450,14 +439,12 @@ GuiUsers.keyDownPassword = function() {
 				}
 				break;	
 			case tvKey.KEY_RIGHT:
-				alert("RIGHT");
 				if (document.getElementById("guiUsers_rempwd").style.color == "red") {
 					document.getElementById("guiUsers_rempwd").style.color = "green";
 					document.getElementById("guiUsers_rempwdvalue").style.color = "red";
 				}
 				break;
 			case tvKey.KEY_LEFT:
-				alert("LEFT");
 				if (document.getElementById("guiUsers_rempwdvalue").style.color == "red") {
 					document.getElementById("guiUsers_rempwd").style.color = "red";
 					document.getElementById("guiUsers_rempwdvalue").style.color = "#f9f9f9";
@@ -465,7 +452,6 @@ GuiUsers.keyDownPassword = function() {
 				break;
 			case tvKey.KEY_ENTER:
 			case tvKey.KEY_PANEL_ENTER:
-				alert("ENTER");
 				if (document.getElementById("guiUsers_rempwdvalue").style.color == "red") {
 					document.getElementById("guiUsers_rempwd").style.color = "red";
 					document.getElementById("guiUsers_rempwdvalue").style.color = "#f9f9f9";
@@ -475,11 +461,9 @@ GuiUsers.keyDownPassword = function() {
 				}
 				break;	
 			case tvKey.KEY_EXIT:
-				alert ("EXIT KEY");
 				widgetAPI.sendExitEvent();
 				break;
 			default:
-				alert("Unhandled key");
 				break;
 		}
 	};

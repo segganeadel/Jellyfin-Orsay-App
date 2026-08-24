@@ -18,7 +18,7 @@ GuiPage_SettingsLog.getMaxDisplay = function() {
 }
 
 GuiPage_SettingsLog.start = function() {
-	alert("Page Enter : GuiPage_SettingsLog");
+	FileLog.write("Page : GuiPage_SettingsLog");
 	
 	//Reset Vars
 	this.selectedBannerItem = 3; //match Logs
@@ -90,7 +90,6 @@ GuiPage_SettingsLog.updateSelectedBannerItems = function() {
 
 GuiPage_SettingsLog.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";

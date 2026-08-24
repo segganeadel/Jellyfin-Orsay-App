@@ -53,7 +53,6 @@ ServerVersion.checkServerVersion = function(serverInfo) {
 
 ServerVersion.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";

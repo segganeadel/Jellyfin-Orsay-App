@@ -31,7 +31,7 @@ GuiPage_ItemDetails.getMaxDisplay2 = function() {
 };
 
 GuiPage_ItemDetails.start = function(title,url,selectedItem) {
-	alert("Page Enter : GuiPage_ItemDetails");
+	FileLog.write("Page : GuiPage_ItemDetails");
 	
 	//Clear previous trailer
 	if (Main.getModelYear() != "D") {
@@ -416,7 +416,6 @@ GuiPage_ItemDetails.updateSelectedItems = function () {
 GuiPage_ItemDetails.keyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -457,15 +456,12 @@ GuiPage_ItemDetails.keyDown = function()
 			}
 		break;
 		case tvKey.KEY_LEFT:
-			alert ("LEFT");
 				this.processLeftKey();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert ("RIGHT");
 			this.processRightKey();
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			if (this.trailersEnabled){
 			    if (this.trailerState == sf.service.VideoPlayer.STATE_PLAYING || 
@@ -516,7 +512,6 @@ GuiPage_ItemDetails.keyDown = function()
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;	
 		case tvKey.KEY_TOOLS:
@@ -560,7 +555,6 @@ GuiPage_ItemDetails.keyDown = function()
 			GuiMusicPlayer.showMusicPlayer("GuiPage_ItemDetails",this.menuItems[this.selectedItem],document.getElementById(this.menuItems[this.selectedItem]).className);
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}
@@ -650,7 +644,7 @@ GuiPage_ItemDetails.processSelectedItem = function() {
 			Support.updateURLHistory("GuiPage_ItemDetails",this.startParams[0],this.startParams[1],null,null,this.selectedItem,null,true);
 			var url = Server.getItemInfoURL(this.ItemData.Id,"&ExcludeLocationTypes=Virtual");
 			var playbackPos = (this.menuItems[this.selectedItem] == "guiTV_Episode_Resume") ? this.ItemData.UserData.PlaybackPositionTicks / 10000 : 0;
-			alert (url);
+			FileLog.write("URL : " + url);
 			GuiPlayer.start("PLAY",url,playbackPos,"GuiPage_ItemDetails");
 		}
 		break;
@@ -775,7 +769,6 @@ GuiPage_ItemDetails.updateSelectedItems2 = function() {
 
 GuiPage_ItemDetails.subKeyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -825,7 +818,6 @@ GuiPage_ItemDetails.subKeyDown = function() {
 			this.updateSelectedItems2();
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 		    if (this.trailerState == sf.service.VideoPlayer.STATE_PLAYING || 
 		    		this.trailerState == sf.service.VideoPlayer.STATE_BUFFERING || 
@@ -841,7 +833,6 @@ GuiPage_ItemDetails.subKeyDown = function() {
 			Support.processReturnURLHistory();
 			break;
 		case tvKey.KEY_LEFT:
-			alert("RETURN Sub");
 			widgetAPI.blockNavigation(event);
 			document.getElementById("Counter").innerHTML = (this.selectedItem + 1) + "/" + this.menuItems.length;
 			if (this.menuItems[this.selectedItem] == "guiTV_Episode_Play") {
@@ -855,11 +846,9 @@ GuiPage_ItemDetails.subKeyDown = function() {
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem2();
 			break;
 		case tvKey.KEY_PLAY:
-			alert("PLAY");
 			this.playSelectedItem2();
 			break;
 		case tvKey.KEY_STOP:
@@ -932,11 +921,9 @@ GuiPage_ItemDetails.subKeyDown = function() {
 			GuiMainMenu.requested("GuiPage_ItemDetailsSub",this.selectedItem2,"FilmListSubSingle highlight"+Main.highlightColour+"Background");
 			break;	
 		case tvKey.KEY_INFO:
-			alert ("INFO KEY");
 			GuiHelper.toggleHelp("GuiPage_ItemDetails");
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}

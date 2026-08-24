@@ -28,7 +28,7 @@ GuiTV_Upcoming.getMaxDisplayBottom = function() {
 }
 
 GuiTV_Upcoming.start = function() {
-	alert("Page Enter : GuiTV_Upcoming");
+	FileLog.write("Page : GuiTV_Upcoming");
 	GuiHelper.setControlButtons(null,null,null,GuiMusicPlayer.Status == "PLAYING" || GuiMusicPlayer.Status == "PAUSED" ? "Music" : null,"Return");
 	
 	//Load Data
@@ -184,7 +184,6 @@ GuiTV_Upcoming.updateSelectedBannerItems = function() {
 GuiTV_Upcoming.keyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -331,7 +330,6 @@ GuiTV_Upcoming.keyDown = function()
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem(false);
 			break;	
 		case tvKey.KEY_TOOLS:
@@ -339,7 +337,6 @@ GuiTV_Upcoming.keyDown = function()
 			this.openMenu();
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
@@ -355,7 +352,6 @@ GuiTV_Upcoming.keyDown = function()
 			}
 			break;
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}
@@ -398,7 +394,6 @@ GuiTV_Upcoming.updateSelectedItems2 = function () {
 GuiTV_Upcoming.bottomKeyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -426,7 +421,6 @@ GuiTV_Upcoming.bottomKeyDown = function()
 	switch(keyCode)
 	{
 		case tvKey.KEY_LEFT:
-			alert("LEFT BOTTOM");	
 			this.selectedItem2--;
 			if (this.selectedItem2 < 0) {
 				this.selectedItem2++;
@@ -499,7 +493,6 @@ GuiTV_Upcoming.bottomKeyDown = function()
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER BOTTOM");
 			this.processSelectedItem(true);
 			break;	
 		case tvKey.KEY_TOOLS:
@@ -507,7 +500,6 @@ GuiTV_Upcoming.bottomKeyDown = function()
 			this.openMenu2();
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN BOTTOM");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
@@ -515,7 +507,6 @@ GuiTV_Upcoming.bottomKeyDown = function()
 			GuiMusicPlayer.showMusicPlayer("GuiTV_UpcomingBottom",this.divprepend2 + this.upcomingData[this.selectedDayItem][this.selectedItem2].Id,document.getElementById(this.divprepend2 + this.upcomingData[this.selectedDayItem][this.selectedItem2].Id).className);
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY BOTTOM");
 			widgetAPI.sendExitEvent();
 			break;
 	}

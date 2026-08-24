@@ -103,7 +103,7 @@ GuiPage_Settings.initiateViewValues = function() {
 }
 
 GuiPage_Settings.start = function(viewToDisplay) {	
-	alert("Page Enter : GuiPage_Settings");
+	FileLog.write("Page : GuiPage_Settings");
 	
 	//Reset Vars
 	this.selectedItem = 0;
@@ -617,7 +617,6 @@ GuiPage_Settings.processSelectedItem = function() {
 
 GuiPage_Settings.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -645,29 +644,23 @@ GuiPage_Settings.keyDown = function() {
 	switch(keyCode) {
 		//Need Logout Key
 		case tvKey.KEY_UP:
-			alert("UP");	
 			this.processUpKey();
 			break;
 		case tvKey.KEY_DOWN:
-			alert("DOWN");	
 			this.processDownKey();
 			break;	
 		case tvKey.KEY_LEFT:
-			alert("LEFT");	
 			this.processLeftKey();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");	
 			this.processRightKey();
 			break;	
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;
 		case tvKey.KEY_YELLOW:	
@@ -689,7 +682,6 @@ GuiPage_Settings.keyDown = function() {
 			this.openMenu();
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent(); 
 			break;
 	}
@@ -957,7 +949,6 @@ GuiPage_Settings.processSelectedSubItem = function() {
 
 GuiPage_Settings.bottomKeyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -984,7 +975,6 @@ GuiPage_Settings.bottomKeyDown = function() {
 	
 	switch(keyCode) {
 		case tvKey.KEY_UP:
-			alert("UP");	
 			this.selectedSubItem--;
 			if (this.selectedSubItem < 0) {
 				this.selectedSubItem = this.CurrentSubSettings.length-1;
@@ -992,7 +982,6 @@ GuiPage_Settings.bottomKeyDown = function() {
 			document.getElementById("Value"+this.selectedItem).innerHTML = this.CurrentSubSettings[this.selectedSubItem];
 			break;
 		case tvKey.KEY_DOWN:
-			alert("DOWN");	
 			this.selectedSubItem++;
 			if (this.selectedSubItem > this.CurrentSubSettings.length-1) {
 				this.selectedSubItem = 0;;
@@ -1001,7 +990,6 @@ GuiPage_Settings.bottomKeyDown = function() {
 			break;
 		case tvKey.KEY_LEFT:	
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			document.getElementById("Value"+this.selectedItem).innerHTML = this.CurrentSettingValue;		
 			document.getElementById("Value"+this.selectedItem).className = "guiSettingsTD GuiPage_Setting_UnSelected";
@@ -1011,7 +999,6 @@ GuiPage_Settings.bottomKeyDown = function() {
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedSubItem();
 			break;
 		case tvKey.KEY_BLUE:	
@@ -1025,11 +1012,9 @@ GuiPage_Settings.bottomKeyDown = function() {
 			GuiMainMenu.requested("GuiPage_Settings",this.selectedItem,"guiSettingsTD highlight"+Main.highlightColour+"Background");
 			break;	
 		case tvKey.KEY_INFO:
-			alert ("INFO KEY");
 			GuiHelper.toggleHelp("GuiPage_Settings");
 			break;
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent(); 
 			break;
 	}

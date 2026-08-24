@@ -28,7 +28,6 @@ GuiNotifications.setNotification = function (Message, Title,alterHeight) {
 			} else {
 				newmessage += Message.substring((brpoint-30),brpoint);
 			}
-			alert(newmessage);
 			brpoint = brpoint + 30;
 		}
 		newmessage += Message.substring((brpoint-30), Message.length);

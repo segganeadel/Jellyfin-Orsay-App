@@ -37,7 +37,7 @@ GuiPage_HomeTwoItems.getMaxDisplayBottom = function() {
 }
 
 GuiPage_HomeTwoItems.start = function(title1, url1, title2, url2,selectedItem,topLeftItem,isTop) {
-	alert("Page Enter : GuiPage_HomeTwoItems");
+	FileLog.write("Page : GuiPage_HomeTwoItems");
 	
 	//Save Start Params
 	this.startParams = [title1, url1, title2, url2];
@@ -197,7 +197,6 @@ GuiPage_HomeTwoItems.updateSelectedBannerItems = function() {
 GuiPage_HomeTwoItems.keyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -225,11 +224,9 @@ GuiPage_HomeTwoItems.keyDown = function()
 	switch(keyCode)
 	{
 		case tvKey.KEY_LEFT:
-			alert("LEFT");
 			this.processLeftKey();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");	
 			if (this.selectedItem == -2) {
 				this.selectedBannerItem++;
 				if (this.selectedBannerItem >= this.menuItems.length) {
@@ -262,7 +259,6 @@ GuiPage_HomeTwoItems.keyDown = function()
 			this.updateSelectedBannerItems();
 			break;	
 		case tvKey.KEY_DOWN:
-			alert ("DOWN");
 			if (this.selectedItem == -2) {
 				this.selectedItem = 0;
 				this.selectedBannerItem = -1;
@@ -294,11 +290,9 @@ GuiPage_HomeTwoItems.keyDown = function()
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem(this.ItemData,true);
 			break;	
 		case tvKey.KEY_PLAY:
-			alert ("PLAY");
 			this.playSelectedItem(this.ItemData.Items,true);
 			break;
 		case tvKey.KEY_TOOLS:
@@ -306,7 +300,6 @@ GuiPage_HomeTwoItems.keyDown = function()
 			GuiPage_HomeTwoItems.openMenu();
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;
@@ -355,7 +348,6 @@ GuiPage_HomeTwoItems.keyDown = function()
 			}
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}
@@ -421,7 +413,6 @@ GuiPage_HomeTwoItems.updateSelectedItems2 = function (bypassCounter) {
 GuiPage_HomeTwoItems.bottomKeyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -449,7 +440,6 @@ GuiPage_HomeTwoItems.bottomKeyDown = function()
 	switch(keyCode)
 	{
 		case tvKey.KEY_LEFT:
-			alert("LEFT BOTTOM");	
 			this.selectedItem2--;
 			if (this.selectedItem2 == -1) {
 				this.selectedItem2 = 0; //Going left from bottom items row.
@@ -468,7 +458,6 @@ GuiPage_HomeTwoItems.bottomKeyDown = function()
 			}
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT BOTTOM");	
 			this.selectedItem2++;
 			if (this.selectedItem2 >= this.ItemData2.Items.length) {
 				this.selectedItem2--;
@@ -481,7 +470,6 @@ GuiPage_HomeTwoItems.bottomKeyDown = function()
 			this.updateSelectedItems2();
 			break;
 		case tvKey.KEY_UP:
-			alert("UP BOTTOM");
 			if (this.ItemData.Items.length > 0) {
 				if (this.topLeftItem2 != 0) {
 					this.topLeftItem2 = 0;
@@ -503,7 +491,6 @@ GuiPage_HomeTwoItems.bottomKeyDown = function()
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER BOTTOM");
 			this.processSelectedItem(this.ItemData2,false);
 			break;	
 		case tvKey.KEY_PLAY:
@@ -515,7 +502,6 @@ GuiPage_HomeTwoItems.bottomKeyDown = function()
 			GuiMainMenu.requested("GuiPage_HomeTwoItemsBottom",this.divprepend2 + this.ItemData2.Items[this.selectedItem2].Id);
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN BOTTOM");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;
@@ -556,7 +542,6 @@ GuiPage_HomeTwoItems.bottomKeyDown = function()
 			GuiMusicPlayer.showMusicPlayer("GuiPage_HomeTwoItemsBottom",this.divprepend2 + this.ItemData2.Items[this.selectedItem2].Id,document.getElementById(this.divprepend2 + this.ItemData2.Items[this.selectedItem2].Id).className);
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY BOTTOM");
 			widgetAPI.sendExitEvent();
 			break;
 	}

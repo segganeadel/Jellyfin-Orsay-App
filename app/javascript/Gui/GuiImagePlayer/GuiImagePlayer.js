@@ -25,7 +25,7 @@ GuiImagePlayer.kill = function() {
 }
 
 GuiImagePlayer.start = function(ItemData,selectedItem,isPhotoCollection) {
-	alert("Page Enter : GuiImagePlayer");
+	FileLog.write("Page : GuiImagePlayer");
 	
 	//Show colour buttons on screen for a few seconds when a slideshow starts.
 	document.getElementById("GuiImagePlayer_ScreensaverOverlay").style.visibility="hidden";
@@ -167,7 +167,6 @@ GuiImagePlayer.playImage = function() {
 
 GuiImagePlayer.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -180,7 +179,6 @@ GuiImagePlayer.keyDown = function() {
 	switch(keyCode){		
 		case tvKey.KEY_STOP:   
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
     		clearTimeout(this.infoTimer);
 			clearTimeout(this.Timeout);
 			this.Timeout = null;
@@ -201,7 +199,6 @@ GuiImagePlayer.keyDown = function() {
 			Support.processReturnURLHistory();
 			break;
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");
 			this.imageIdx++;
 			if (this.imageIdx == this.images.length) {
 				this.imageIdx = 0;	
@@ -209,7 +206,6 @@ GuiImagePlayer.keyDown = function() {
 			GuiImagePlayer.prepImage(GuiImagePlayer.imageIdx);
 			break;
 		case tvKey.KEY_LEFT:
-			alert("LEFT");
 			this.imageIdx--;
 			if (this.imageIdx < 0) {
 				this.imageIdx = this.images.length-1;
@@ -217,11 +213,9 @@ GuiImagePlayer.keyDown = function() {
 			GuiImagePlayer.prepImage(GuiImagePlayer.imageIdx);
 			break;
 		case tvKey.KEY_PAUSE:
-			alert("PAUSE")
 			this.Paused = true
 			break;
 		case tvKey.KEY_PLAY:
-			alert("PLAY")
 			this.Paused = false
 			GuiImagePlayer.prepImage(GuiImagePlayer.imageIdx);
 			break;

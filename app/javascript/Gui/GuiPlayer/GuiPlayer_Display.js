@@ -243,7 +243,6 @@ GuiPlayer_Display.createToolsMenu = function() {
 
 GuiPlayer_Display.keyDownTools = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 	this.videoToolsSelectedItemSub = 0;
 	document.getElementById("guiPlayer_Tools_SubOptions").innerHTML = "";
 
@@ -288,7 +287,6 @@ GuiPlayer_Display.keyDownTools = function() {
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");	
 			this.topLeftItem = 0;
 			switch (this.videoToolsOptions[this.videoToolsSelectedItem]) {
 			case "videoOptionChapters":
@@ -363,7 +361,6 @@ GuiPlayer_Display.keyDownTools = function() {
 			GuiPlayer.handleInfoKey();
 			break;
         case tvKey.KEY_EXIT:
-            alert("EXIT");
             widgetAPI.blockNavigation(event);
             GuiPlayer.stopPlayback();
             GuiPlayer_Display.restorePreviousMenu();
@@ -374,11 +371,9 @@ GuiPlayer_Display.keyDownTools = function() {
 
 GuiPlayer_Display.keyDownToolsSlider = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	switch(keyCode) {
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			document.getElementById("guiPlayer_Tools_Slider").style.visibility = "hidden";
 			document.getElementById("GuiPlayer_Tools").focus();
@@ -455,7 +450,6 @@ GuiPlayer_Display.keyDownToolsSlider = function() {
 			GuiPlayer.handleInfoKey();
 			break;
         case tvKey.KEY_EXIT:
-            alert("EXIT");
             widgetAPI.blockNavigation(event);
             GuiPlayer.stopPlayback();
             GuiPlayer_Display.restorePreviousMenu();
@@ -475,11 +469,9 @@ GuiPlayer_Display.updateSelectedItems = function() {
 
 GuiPlayer_Display.keyDownToolsSub = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed keyDownToolsSub: " + keyCode);
 
 	switch(keyCode) {
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			document.getElementById("guiPlayer_Tools_SubOptions").style.visibility = "hidden";
 			this.updateSelectedItems();
@@ -509,7 +501,6 @@ GuiPlayer_Display.keyDownToolsSub = function() {
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");	
 			document.getElementById("guiPlayer_Tools_SubOptions").style.visibility = "hidden";
 			if (document.getElementById("guiPlayer_Tools").style.opacity != 0) {
     			$('#guiPlayer_Tools').css('opacity',1).animate({opacity:0}, 500);
@@ -585,7 +576,6 @@ GuiPlayer_Display.keyDownToolsSub = function() {
 			GuiPlayer.handleInfoKey();
 			break;
         case tvKey.KEY_EXIT:
-            alert("EXIT");
             widgetAPI.blockNavigation(event);
             GuiPlayer.stopPlayback();
             GuiPlayer_Display.restorePreviousMenu();
@@ -612,11 +602,9 @@ GuiPlayer_Display.updateSelectedItemsSub = function() {
 
 GuiPlayer_Display.updateDisplayedItemsSub = function() {
 	document.getElementById("guiPlayer_Tools_SubOptions").innerHTML = "";
-	alert ("VideoToolsSubOptions Length: " + this.videoToolsSubOptions.length);
 	for (var index = this.topLeftItem; index < Math.min(this.videoToolsSubOptions.length,this.topLeftItem + this.maxDisplay);index++) {
 		switch (this.videoToolsOptions[this.videoToolsSelectedItem]) {
 		case "videoOptionSubtitles":
-			alert ("Subtitle Option Index in DisplayItems: " + this.videoToolsSubOptions[index]);
 			if (this.videoToolsSubOptions[index] == -1) {
 				document.getElementById("guiPlayer_Tools_SubOptions").innerHTML += "<div id=videoToolsSubOptions"+index+" class=videoToolsOption>None</div>";	
 			} else {

@@ -5,7 +5,7 @@ var GuiUsers_Manual = {
 }
 
 GuiUsers_Manual.start = function() {
-	alert("Page Enter : GuiUsers_Manual");
+	FileLog.write("Page : GuiUsers_Manual");
 	GuiHelper.setControlButtons(null,null,null,null,"Return");
 	
 	//Reset Properties
@@ -56,7 +56,6 @@ GuiUsers_Manual.IMEAuthenticate = function(user, password) {
     	GuiMainMenu.start();
     } else {
     			
-    	alert ("Authentication Failed");		
     	document.getElementById("user").focus();
     	GuiNotifications.setNotification("Wrong username, bad password or network error.","Logon Error",true);
     }     		
@@ -76,7 +75,6 @@ var GuiUsers_Manual_Input  = function(id) {
   
     var installFocusKeyCallbacks = function () {
         ime.setKeyFunc(tvKey.KEY_ENTER, function (keyCode) {
-            alert("Enter key pressed");  
             if (GuiUsers_Manual.selectedItem == 0) {
             	//Set IME to Password field
             	GuiUsers_Manual.selectedItem++;
@@ -91,7 +89,6 @@ var GuiUsers_Manual_Input  = function(id) {
         });
         
         ime.setKeyFunc(tvKey.KEY_DOWN, function (keyCode) {
-            alert("Down key pressed");  
             if (GuiUsers_Manual.selectedItem == 0) {
             	//Set IME to Password field
             	GuiUsers_Manual.selectedItem++;
@@ -104,7 +101,6 @@ var GuiUsers_Manual_Input  = function(id) {
         });
         
         ime.setKeyFunc(tvKey.KEY_UP, function (keyCode) {
-            alert("Up key pressed");  
             if (GuiUsers_Manual.selectedItem == 1) {
             	//Set IME to Username field
             	GuiUsers_Manual.selectedItem--;
@@ -132,7 +128,6 @@ var GuiUsers_Manual_Input  = function(id) {
 
 GuiUsers_Manual.keyDownPassword = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -146,7 +141,6 @@ GuiUsers_Manual.keyDownPassword = function() {
 	{
 		case tvKey.KEY_RETURN:
 		case tvKey.KEY_PANEL_RETURN:
-			alert("RETURN");
 			widgetAPI.sendReturnEvent();
 			break;
 		case tvKey.KEY_UP:
@@ -165,14 +159,12 @@ GuiUsers_Manual.keyDownPassword = function() {
 			}
 			break;	
 		case tvKey.KEY_RIGHT:
-			alert("RIGHT");
 			if (document.getElementById("guiUsers_rempwd").style.color == "red") {
 				document.getElementById("guiUsers_rempwd").style.color = "green";
 				document.getElementById("guiUsers_rempwdvalue").style.color = "red";
 			}
 			break;
 		case tvKey.KEY_LEFT:
-			alert("LEFT");
 			if (document.getElementById("guiUsers_rempwdvalue").style.color == "red") {
 				document.getElementById("guiUsers_rempwd").style.color = "red";
 				document.getElementById("guiUsers_rempwdvalue").style.color = "#f9f9f9";
@@ -180,7 +172,6 @@ GuiUsers_Manual.keyDownPassword = function() {
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			if (document.getElementById("guiUsers_rempwdvalue").style.color == "red") {
 				document.getElementById("guiUsers_rempwd").style.color = "red";
 				document.getElementById("guiUsers_rempwdvalue").style.color = "#f9f9f9";
@@ -190,11 +181,9 @@ GuiUsers_Manual.keyDownPassword = function() {
 			}
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 		default:
-			alert("Unhandled key");
 			break;
 	}
 };

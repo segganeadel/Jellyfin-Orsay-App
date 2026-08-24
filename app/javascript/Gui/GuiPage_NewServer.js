@@ -6,7 +6,7 @@ var GuiPage_NewServer = {
 }
 
 GuiPage_NewServer.start = function() {
-	alert("Page Enter : GuiPage_NewServer");
+	FileLog.write("Page : GuiPage_NewServer");
 	GuiHelper.setControlButtons(null,null,null,null,"Return");
 	
 	//Insert html into page
@@ -93,7 +93,6 @@ var GuiPage_NewServer_Input  = function(id,previousId, nextId) {
     
     var installFocusKeyCallbacks = function () {
         ime.setKeyFunc(tvKey.KEY_ENTER, function (keyCode) {
-            alert("Enter key pressed");
             
             GuiNotifications.setNotification("Please Wait","Checking Details",true);
                                   

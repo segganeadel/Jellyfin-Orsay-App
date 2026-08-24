@@ -366,7 +366,6 @@ GuiPlayer_Versions.getMainStreamIndex = function(MediaSource, MediaSourceIndex) 
 
 GuiPlayer_Versions.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -401,7 +400,6 @@ GuiPlayer_Versions.keyDown = function() {
 			break;
 		case tvKey.KEY_RETURN:
 		case tvKey.KEY_PANEL_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			//Hide Menu
 			document.getElementById("guiPlayer_Loading").style.visibility = "hidden";
@@ -419,7 +417,6 @@ GuiPlayer_Versions.keyDown = function() {
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			document.getElementById("guiPlayer_Versions_Playables").style.visibility = "hidden";
 			document.getElementById("guiPlayer_Versions_Playables").innerHTML = "";
 			document.getElementById("Counter").innerHTML = this.previousCounter;
@@ -427,18 +424,15 @@ GuiPlayer_Versions.keyDown = function() {
 			GuiPlayer.startPlayback(this.MediaSelections[this.selectedItem],this.resumeTicks);
 			break;	
 		case tvKey.KEY_BLUE:
-			alert("BLUE");
 			document.getElementById("guiPlayer_Loading").style.visibility = "hidden";
 			File.deleteFile();
 			widgetAPI.sendExitEvent()
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			document.getElementById("guiPlayer_Loading").style.visibility = "hidden";
 			widgetAPI.sendExitEvent();
 			break;
 		default:
-			alert("Unhandled key");
 			break;
 	}
 };

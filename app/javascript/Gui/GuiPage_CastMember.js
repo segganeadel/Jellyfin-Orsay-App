@@ -13,7 +13,7 @@ GuiPage_CastMember.getMaxDisplay = function() {
 }
 
 GuiPage_CastMember.start = function(title,url,selectedItem,topLeftItem) {	
-	alert("Page Enter : GuiPage_CastMember");
+	FileLog.write("Page : GuiPage_CastMember");
 	GuiHelper.setControlButtons(null,null,null,GuiMusicPlayer.Status == "PLAYING" || GuiMusicPlayer.Status == "PAUSED" ? "Music" : null,"Return");
 	
 	//Save Start Params
@@ -146,7 +146,6 @@ GuiPage_CastMember.updateSelectedItems = function () {
 GuiPage_CastMember.keyDown = function()
 {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -174,25 +173,20 @@ GuiPage_CastMember.keyDown = function()
 	switch(keyCode)
 	{
 		case tvKey.KEY_LEFT:
-			alert("LEFT");
 			this.openMenu();
 			break;
 		case tvKey.KEY_UP:
-			alert("UP");	
 			this.processUpKey();
 			break;
 		case tvKey.KEY_DOWN:
-			alert("RIGHT");	
 			this.processDownKey();
 			break;				
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;
 		case tvKey.KEY_PLAY:
@@ -211,7 +205,6 @@ GuiPage_CastMember.keyDown = function()
 			GuiMainMenu.requested("GuiPage_CastMember",this.ItemData.Items[this.selectedItem].Id,"EpisodeListSingle highlight"+Main.highlightColour+"Background");
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent(); 
 			break;
 	}

@@ -20,7 +20,7 @@ GuiPage_Search.getMaxDisplay = function() {
 }
 
 GuiPage_Search.start = function(title, url) {
-	alert("Page Enter : GuiPage_Search");
+	FileLog.write("Page : GuiPage_Search");
 	
 	//Reset Properties
 	this.ItemData = null;
@@ -143,7 +143,6 @@ ime.setKeypadPos(1300,90);
        
 var installFocusKeyCallbacks = function () {
     ime.setKeyFunc(tvKey.KEY_ENTER, function (keyCode) {
-        alert("Enter key pressed");    
         var searchString = Support.trimInput(document.getElementById("searchInput").value);
         if (searchString != "") {
         	//Load Data
@@ -171,7 +170,6 @@ var installFocusKeyCallbacks = function () {
     });
     
     ime.setKeyFunc(tvKey.KEY_DOWN, function (keyCode) {
-    	alert ("Down Key IME: " + GuiPage_Search.ItemData.TotalRecordCount);
     	if (GuiPage_Search.ItemData.TotalRecordCount > 0) {
     		//Turn On Screensaver
     	    Support.screensaverOn();
@@ -208,7 +206,6 @@ var installFocusKeyCallbacks = function () {
 
 GuiPage_Search.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 	
 	if (document.getElementById("Notifications").style.visibility == "") {
 		document.getElementById("Notifications").style.visibility = "hidden";
@@ -255,13 +252,11 @@ GuiPage_Search.keyDown = function() {
 			this.processChannelDownKey();
 			break;		
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;	
 		case tvKey.KEY_TOOLS:
@@ -275,7 +270,6 @@ GuiPage_Search.keyDown = function() {
 			GuiMusicPlayer.showMusicPlayer("GuiPage_Search",this.playItems[this.selectedItem2]+this.ItemData.SearchHints[this.selectedItem].ItemId,"guiMusic_TableTd highlight"+Main.highlightColour+"Background");
 			break;	
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}

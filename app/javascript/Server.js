@@ -461,13 +461,11 @@ Server.getSubtitles = function(url) {
 		xmlHttp.send(null);
 
 		if (xmlHttp.status != 200) {
-			alert (xmlHttp.status);
 			return null;
 		} else {
 			return xmlHttp.responseText;
 		}
 	} else {
-		alert ("Bad xmlHTTP Request");
 		Server.Logout();
 		GuiNotifications.setNotification("The TV could not create a request to the server.","Server Error",false);
 		GuiUsers.start(true);
@@ -988,7 +986,6 @@ Server.getContent = function(url) {
 			return Server.parseResponse(xmlHttp.responseText);
 		}
 	} else {
-		alert ("Bad xmlHTTP Request");
 		Server.Logout();
 		GuiNotifications.setNotification("The TV could not create a request to the server.","Server Error",false);
 		GuiUsers.start(true);

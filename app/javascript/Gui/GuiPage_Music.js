@@ -25,7 +25,7 @@ GuiPage_Music.getMaxDisplay = function() {
 }
 
 GuiPage_Music.start = function(title,url,type) { //Type is either MusicAlbum or MusicArtist
-	alert("Page Enter : GuiPage_Music");
+	FileLog.write("Page : GuiPage_Music");
 
 	//Save Start Params
 	this.startParams = [title,url];
@@ -155,7 +155,6 @@ GuiPage_Music.updateSelectedItems = function () {
 
 GuiPage_Music.keyDown = function() {
 	var keyCode = event.keyCode;
-	alert("Key pressed: " + keyCode);
 	
 	//Update Screensaver Timer
 	Support.screensaver();
@@ -186,13 +185,11 @@ GuiPage_Music.keyDown = function() {
 			this.processDownKey();
 			break;
 		case tvKey.KEY_RETURN:
-			alert("RETURN");
 			widgetAPI.blockNavigation(event);
 			Support.processReturnURLHistory();
 			break;	
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			alert("ENTER");
 			this.processSelectedItem();
 			break;	
 		case tvKey.KEY_TOOLS:
@@ -210,7 +207,6 @@ GuiPage_Music.keyDown = function() {
 			}
 			break;		
 		case tvKey.KEY_EXIT:
-			alert ("EXIT KEY");
 			widgetAPI.sendExitEvent();
 			break;
 	}
