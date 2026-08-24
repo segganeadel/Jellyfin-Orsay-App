@@ -130,6 +130,17 @@ platform APIs. What has been fixed since:
 - The app no longer refuses to start on a network without internet access.
 - User input is escaped into URLs, so a search containing `&` no longer truncates.
 
+**Playing something**
+
+| Key | |
+| --- | --- |
+| DOWN or TOOLS | Bottom bar: play/pause, chapters, subtitles, audio, position |
+| YELLOW | Statistics overlay - how the file is being delivered, and why |
+| FF / RW | Scan at 2x, 4x, 8x on a direct play; fixed jumps otherwise |
+| INFO | Full item details |
+
+The bar fades after five seconds while playing and stays up while paused.
+
 **Still open**
 - Trick play (`SetPlaybackSpeed`), 3D top-and-bottom mode, and a subtitle timing
   offset — all available and unused.
