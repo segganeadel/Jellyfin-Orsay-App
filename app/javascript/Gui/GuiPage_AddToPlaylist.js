@@ -53,7 +53,7 @@ GuiPage_AddToPlaylist.start=function(itemId, playedFromPage, mediaType) {
 		Support.screensaverOff(); // Must turn off as not possible to catch keys!
 	} else {
 		for (var index = 0; index < this.ItemData.Items.length; index++) {
-			url2 = Server.getCustomURL("/Playlists/" + this.ItemData.Items[index].Id+"/Items?format=json&userId="+Server.getUserID());
+			var url2 = Server.getCustomURL("/Playlists/" + this.ItemData.Items[index].Id+"/Items?format=json&userId="+Server.getUserID());
 			this.ItemData2 = Server.getContent(url2);
 			if (this.ItemData2 == null) { return; }
 			

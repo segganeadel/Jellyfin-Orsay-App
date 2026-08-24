@@ -454,7 +454,7 @@ Server.updateUserConfiguration = function(contentToPost) {
 //      Player Functions
 //------------------------------------------------------------
 Server.getSubtitles = function(url) {
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("GET", url , false); //must be false
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -476,7 +476,7 @@ Server.getSubtitles = function(url) {
 
 Server.videoStarted = function(showId,MediaSourceID,PlayMethod,PlaySessionId) {
 	var url = this.serverAddr + "/Sessions/Playing";
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		var contentToPost = '{"QueueableMediaTypes":["Video"],"CanSeek":false,"ItemId":"'+showId+'","PlaySessionId":"'+PlaySessionId+'","MediaSourceId":"'+MediaSourceID+'","IsPaused":false,"IsMuted":false,"PositionTicks":0,"PlayMethod":"'+PlayMethod+'"}';
 		xmlHttp.open("POST", url , true); //must be true!
@@ -487,7 +487,7 @@ Server.videoStarted = function(showId,MediaSourceID,PlayMethod,PlaySessionId) {
 
 Server.videoStopped = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionId) {
 	var url = this.serverAddr + "/Sessions/Playing/Stopped";
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		var contentToPost = '{"QueueableMediaTypes":["Video"],"CanSeek":false,"ItemId":"'+showId+'","PlaySessionId":"'+PlaySessionId+'","MediaSourceId":"'+MediaSourceID+'","IsPaused":false,"IsMuted":false,"PositionTicks":'+(ticks*10000)+',"PlayMethod":"'+PlayMethod+'"}';
 		xmlHttp.open("POST", url , true); //must be true!
@@ -498,7 +498,7 @@ Server.videoStopped = function(showId,MediaSourceID,ticks,PlayMethod,PlaySession
 
 Server.videoPaused = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionId) {
 	var url = this.serverAddr + "/Sessions/Playing/Progress";
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		var contentToPost = '{"QueueableMediaTypes":["Video"],"CanSeek":false,"ItemId":"'+showId+'","PlaySessionId":"'+PlaySessionId+'","MediaSourceId":"'+MediaSourceID+'","IsPaused":true,"IsMuted":false,"PositionTicks":'+(ticks*10000)+',"PlayMethod":"'+PlayMethod+'"}';
 		xmlHttp.open("POST", url , true); //must be true!
@@ -509,7 +509,7 @@ Server.videoPaused = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionI
 
 Server.videoTime = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionId) {
 	var url = this.serverAddr + "/Sessions/Playing/Progress";
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		var contentToPost = '{"QueueableMediaTypes":["Video"],"CanSeek":false,"ItemId":"'+showId+'","PlaySessionId":"'+PlaySessionId+'","MediaSourceId":"'+MediaSourceID+'","IsPaused":false,"IsMuted":false,"PositionTicks":'+(ticks*10000)+',"PlayMethod":"'+PlayMethod+'"}';
 		xmlHttp.open("POST", url , true); //must be true!
@@ -520,7 +520,7 @@ Server.videoTime = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionId)
 
 Server.stopHLSTranscode = function(playSessionId) {
 	var url = this.serverAddr + "/Videos/ActiveEncodings?DeviceId="+this.DeviceID + (playSessionId ? "&PlaySessionId="+playSessionId : "");
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("DELETE", url , true); //ActiveEncodings is a DELETE endpoint
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -534,7 +534,7 @@ Server.stopHLSTranscode = function(playSessionId) {
 
 Server.setWatchedStatus = function(id) {
 	var url = this.serverAddr + "/Users/" + this.UserID + "/PlayedItems/" + id;
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("POST", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -544,7 +544,7 @@ Server.setWatchedStatus = function(id) {
 
 Server.deleteWatchedStatus = function(id) {
 	var url = this.serverAddr + "/Users/" + this.UserID + "/PlayedItems/" + id;
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("DELETE", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -559,7 +559,7 @@ Server.deleteWatchedStatus = function(id) {
 
 Server.setFavourite = function(id) {
 	var url = this.serverAddr + "/Users/" + this.UserID + "/FavoriteItems/" + id;
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("POST", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -569,7 +569,7 @@ Server.setFavourite = function(id) {
 
 Server.deleteFavourite = function(id) {
 	var url = this.serverAddr + "/Users/" + this.UserID + "/FavoriteItems/" + id;
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("DELETE", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -583,7 +583,7 @@ Server.deleteFavourite = function(id) {
 Server.createPlaylist = function(name, ids, mediaType) {
 	//A name with a space, & or # used to break or truncate the request.
 	var url = this.serverAddr + "/Playlists?Name=" + encodeURIComponent(name) + "&Ids=" + ids + "&userId="+Server.getUserID() + "&MediaType=" + mediaType;
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("POST", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -593,7 +593,7 @@ Server.createPlaylist = function(name, ids, mediaType) {
 
 Server.deletePlaylist = function(playlistId) {
 	var url = this.serverAddr + "/Items/"+playlistId;
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("DELETE", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -603,7 +603,7 @@ Server.deletePlaylist = function(playlistId) {
 
 Server.addToPlaylist = function(playlistId, ids) {
 	var url = this.serverAddr + "/Playlists/"+ playlistId + "/Items?Ids=" + ids + "&userId="+Server.getUserID();
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("POST", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -613,7 +613,7 @@ Server.addToPlaylist = function(playlistId, ids) {
 
 Server.removeFromPlaylist = function(playlistId, ids) {
 	var url = this.serverAddr + "/Playlists/"+ playlistId + "/Items?EntryIds=" + ids + "&userId="+Server.getUserID();
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("DELETE", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -622,7 +622,7 @@ Server.removeFromPlaylist = function(playlistId, ids) {
 }
 
 Server.POST = function(url, item) {
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("POST", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);
@@ -635,7 +635,7 @@ Server.POST = function(url, item) {
 }
 
 Server.DELETE = function(url, item) {
-	xmlHttp = new XMLHttpRequest();
+	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
 		xmlHttp.open("DELETE", url , true); //must be true!
 		xmlHttp = this.setRequestHeaders(xmlHttp);

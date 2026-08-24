@@ -589,7 +589,7 @@ GuiPlayer.onBufferingComplete = function() {
     
 	//Setup Volume & Mute Keys
 	//Volume & Mute Control - Works!
-	NNaviPlugin = document.getElementById("pluginObjectNNavi");
+	var NNaviPlugin = document.getElementById("pluginObjectNNavi");
     NNaviPlugin.SetBannerState(PL_NNAVI_STATE_BANNER_VOL);
     pluginAPI.unregistKey(tvKey.KEY_VOL_UP);
     pluginAPI.unregistKey(tvKey.KEY_VOL_DOWN);

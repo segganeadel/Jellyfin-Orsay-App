@@ -376,7 +376,7 @@ GuiMusicPlayer.handleStopKey = function() {
 
 GuiMusicPlayer.returnToPage = function() {
 	//Reset NAVI - Works
-	NNaviPlugin = document.getElementById("pluginObjectNNavi");
+	var NNaviPlugin = document.getElementById("pluginObjectNNavi");
     NNaviPlugin.SetBannerState(PL_NNAVI_STATE_BANNER_NONE);
     pluginAPI.registKey(tvKey.KEY_VOL_UP);
     pluginAPI.registKey(tvKey.KEY_VOL_DOWN);
@@ -601,7 +601,7 @@ GuiMusicPlayer.OnStreamInfoReady = function() {
 	Server.videoStarted(this.queuedItems[this.currentPlayingItem].Id,this.queuedItems[this.currentPlayingItem].MediaSources[0].Id,"DirectStream",this.PlaySessionId);
 	
     //Volume & Mute Control - Works!
-	NNaviPlugin = document.getElementById("pluginObjectNNavi");
+	var NNaviPlugin = document.getElementById("pluginObjectNNavi");
     NNaviPlugin.SetBannerState(PL_NNAVI_STATE_BANNER_VOL);
     pluginAPI.unregistKey(tvKey.KEY_VOL_UP);
     pluginAPI.unregistKey(tvKey.KEY_VOL_DOWN);

@@ -175,7 +175,7 @@ GuiPlayer_Display.restorePreviousMenu = function() {
     
     //Reset Volume & Mute Keys
 	//Reset NAVI - Works
-	NNaviPlugin = document.getElementById("pluginObjectNNavi");
+	var NNaviPlugin = document.getElementById("pluginObjectNNavi");
     NNaviPlugin.SetBannerState(PL_NNAVI_STATE_BANNER_NONE);
     pluginAPI.registKey(tvKey.KEY_VOL_UP);
     pluginAPI.registKey(tvKey.KEY_VOL_DOWN);

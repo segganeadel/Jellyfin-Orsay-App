@@ -50,7 +50,7 @@ GuiMainMenu.start = function() {
 	document.getElementById("menuItems").innerHTML = htmlToAdd;
 	
 	//Add settings and logout
-	htmlToAdd = "";
+	var htmlToAdd = "";
 	this.menuItems.push("Search");
 	htmlToAdd += "<div id=Search class='menu-item'><div id='menu-Icon' class='menu-icon' style='background-image:url(images/menu/Search-46x37.png)'></div>Search</div>";
 	this.menuItems.push("Settings");

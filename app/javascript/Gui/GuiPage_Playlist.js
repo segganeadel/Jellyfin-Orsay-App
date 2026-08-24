@@ -95,7 +95,7 @@ GuiPage_Playlist.start = function(title,url,type,playlistId) { //Type is either 
 GuiPage_Playlist.updateDisplayedItems = function() {
 	var htmlToAdd = "";
 	if (this.startParams[2] == "Audio") {
-		htmlToAdd = "<table><th style='width:200px'></th><th style='width:66px'></th><th style='width:72px'></th><th style='width:120px'></th><th style='width:66px'></th><th style='width:500px'></th><th style='width:130px'></th>";
+		var htmlToAdd = "<table><th style='width:200px'></th><th style='width:66px'></th><th style='width:72px'></th><th style='width:120px'></th><th style='width:66px'></th><th style='width:500px'></th><th style='width:130px'></th>";
 		for (var index = this.topLeftItem; index < Math.min(this.topLeftItem + this.getMaxDisplay(),this.AlbumData.Items.length); index++){			
 			if (this.AlbumData.Items[index].ParentIndexNumber && this.AlbumData.Items[index].IndexNumber) {
 				TrackDetails = this.AlbumData.Items[index].ParentIndexNumber+"." + this.AlbumData.Items[index].IndexNumber;
@@ -110,7 +110,7 @@ GuiPage_Playlist.updateDisplayedItems = function() {
 							"<td class='guiMusic_TableTd'>"+Support.convertTicksToTimeSingle(this.AlbumData.Items[index].RunTimeTicks/10000,true)+"</td></tr>";	
 		}
 	} else {
-		htmlToAdd = "<table><th style='width:200px'></th><th style='width:66px'></th><th style='width:72px'></th><th style='width:120px'></th><th style='width:300px'></th><th style='width:100px'></th><th style='width:500px'></th><th style='width:130px'></th>";
+		var htmlToAdd = "<table><th style='width:200px'></th><th style='width:66px'></th><th style='width:72px'></th><th style='width:120px'></th><th style='width:300px'></th><th style='width:100px'></th><th style='width:500px'></th><th style='width:130px'></th>";
 		for (var index = this.topLeftItem; index < Math.min(this.topLeftItem + this.getMaxDisplay(),this.AlbumData.Items.length); index++){	
 			
 			if (this.AlbumData.Items[index].Type == "Episode") {
