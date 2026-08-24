@@ -20,11 +20,13 @@ File.setUserEntry = function(userEntry) {
 };
 
 File.deleteOldSettingsFile = function() {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	fileSystemObj.deleteCommonFile(curWidget.id + '/MB3_Settings.xml');
 };
 
 File.deleteSettingsFile = function() {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	fileSystemObj.deleteCommonFile(curWidget.id + '/MB3_Settings.json');
 };
@@ -78,8 +80,23 @@ File.parseSettings = function(text) {
 };
 
 // Read and parse in one guarded step.
+//The settings file was opened and parsed afresh on every property read, and
+//there are around seventy of those - the clock alone did it every 900ms. It is
+//a small file but this is a slow device, so the parsed form is kept and reused.
+//
+//Every function that writes the file drops the cache, so a stale copy cannot
+//outlive a change. The cost of getting that wrong is high, so the rule is
+//simply: any write, anywhere, invalidates.
+File.cache = null;
+
+File.invalidate = function() {
+	File.cache = null;
+};
+
 File.readSettings = function() {
-	return File.parseSettings(File.loadFile());
+	if (File.cache != null) { return File.cache; }
+	File.cache = File.parseSettings(File.loadFile());
+	return File.cache;
 };
 
 File.checkVersion = function(fileContent) {
@@ -91,6 +108,7 @@ File.checkVersion = function(fileContent) {
 };
 
 File.saveServerToFile = function(Id,Name,ServerIP) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -120,6 +138,7 @@ File.saveServerToFile = function(Id,Name,ServerIP) {
 };
 
 File.setDefaultServer = function (defaultIndex) {
+	File.invalidate();
 	var fileJson = File.readSettings(); 
 	for (var index = 0; index < fileJson.Servers.length; index++) {
 		if (fileJson.Servers[defaultIndex].Id == fileJson.Servers[index].Id ) {
@@ -139,6 +158,7 @@ File.setDefaultServer = function (defaultIndex) {
 };
 
 File.deleteServer = function (index) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -162,6 +182,7 @@ File.deleteServer = function (index) {
 };
 
 File.addUser = function (UserId, Name, Password, rememberPassword) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -216,6 +237,7 @@ File.addUser = function (UserId, Name, Password, rememberPassword) {
 //Signing out has to drop the saved token as well, or the next launch would
 //simply sign back in with it.
 File.clearSavedLogin = function () {
+	File.invalidate();
 	var fileJson = File.readSettings();
 	if (fileJson.Servers == null || fileJson.Servers[this.ServerEntry] == null) { return; }
 
@@ -228,6 +250,7 @@ File.clearSavedLogin = function () {
 };
 
 File.deleteUser = function (index) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -245,6 +268,7 @@ File.deleteUser = function (index) {
 };
 
 File.deleteAllUsers = function (index) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -262,6 +286,7 @@ File.deleteAllUsers = function (index) {
 };
 
 File.deleteUserPasswords = function () {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -281,6 +306,7 @@ File.deleteUserPasswords = function () {
 };
 
 File.updateUserSettings = function (altered) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -299,6 +325,7 @@ File.updateUserSettings = function (altered) {
 
 
 File.updateServerSettings = function (altered) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -316,6 +343,7 @@ File.updateServerSettings = function (altered) {
 };
 
 File.writeAll = function (toWrite) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openWrite = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'w');
 	if (openWrite) {
@@ -329,11 +357,8 @@ File.writeAll = function (toWrite) {
 //---------------------------------------------------------------------------------------------------------------------------------
 
 File.getUserProperty = function(property) {
-	var fileSystemObj = new FileSystem();
-	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
-	if (openRead) {
-		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
-		fileSystemObj.closeCommonFile(openRead);	
+	var fileJson = File.readSettings();
+	if (fileJson) {
 		if (!fileJson.Servers[this.ServerEntry].Users[this.UserEntry]) { //In case we're not logged in yet.
 			return null;
 		}
@@ -353,11 +378,8 @@ File.getUserProperty = function(property) {
 };
 
 File.getTVProperty = function(property) {
-	var fileSystemObj = new FileSystem();
-	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
-	if (openRead) {
-		var fileJson = File.parseSettings(openRead.readLine()); //Read line as only 1 and skips line break!
-		fileSystemObj.closeCommonFile(openRead);	
+	var fileJson = File.readSettings();
+	if (fileJson) {	
 
 		if (fileJson.TV === undefined) {
 			fileJson.TV = {};
@@ -384,6 +406,7 @@ File.getTVProperty = function(property) {
 //---------------------------------------------------------------------------------------------------------------------------------
 
 File.setTVProperty = function(property,value) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
@@ -399,6 +422,7 @@ File.setTVProperty = function(property,value) {
 };
 
 File.setUserProperty = function(property,value) {
+	File.invalidate();
 	var fileSystemObj = new FileSystem();
 	var openRead = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Settings.json', 'r');
 	if (openRead) {
