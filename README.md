@@ -28,8 +28,12 @@ PC's IP, and start User App Sync.
 
 ## What the TV can play
 
-Playback decisions are made on the client, from a per-model capability table in
-`GuiPlayer_TranscodeParams.js`. For the 2013 F-series that means:
+The app sends Jellyfin a **DeviceProfile** describing what the panel can decode,
+and the server decides how to deliver each file — direct play where possible,
+transcoded to H.264 over HLS where not. The limits live in
+`GuiPlayer_DeviceProfile.js`, keyed by model year.
+
+For the 2013 F-series that means:
 
 | | |
 | --- | --- |
@@ -38,7 +42,13 @@ Playback decisions are made on the client, from a per-model capability table in
 | **Transcoded** | HEVC, VP9, AV1, 10-bit — the hardware cannot decode these |
 | **Containers** | MP4, MKV, AVI, TS, MOV, WMV and friends |
 
-Anything outside that is transcoded to H.264 by the server over HLS.
+Bitrate is capped at what the panel accepts (30.7 Mbit on F-series) regardless of
+the user's setting, and passthrough audio is only advertised when the hardware
+confirms it can carry it.
+
+If the server cannot negotiate — an older Jellyfin, or a request that fails — the
+app falls back to deciding locally from the same limits table. The
+**Let Server Choose Playback** setting turns negotiation off entirely.
 
 ---
 
@@ -67,30 +77,65 @@ so it is still listening.
 `ime2.js` is the only keyboard object the firmware exposes to an app of
 `<type>user</type>`; the system keyboard belongs to privileged applications like
 the Web Browser. This was measured on-device, not assumed. `IMEShell` leaves stray
-whitespace in fields, so input is trimmed before use.
+whitespace in fields, so input is trimmed before use. Because `IMEShell` is drawn
+by the app rather than the firmware, its size and position are ours to change.
+
+**The platform cannot be asked what it decodes.** There is no codec capability
+call anywhere in the Device API; `OnRenderError` reporting a failure after the
+fact is the only signal. That is why the limits are a table rather than a query.
 
 ---
 
 ## Recent work
 
 Audited across correctness, Jellyfin API conformance, and use of the Samsung
-platform APIs; the resulting fixes so far:
+platform APIs. What has been fixed since:
 
-- **Playback** — MP4 and MKV were being transcoded unnecessarily, because Jellyfin
-  reports a container as ffprobe's whole format list (`mov,mp4,m4a,3gp,3g2,mj2`)
-  and the comparison expected one name. Transcoded streams could not start at all,
-  as the player's HLS marker had been removed. Transcode bitrate is now capped
-  rather than requesting 60 Mbit for a 3 Mbit file.
-- **Resume points** — `PlayMethod` went unset for audio-only transcodes, so the
-  server rejected the playback report and saved no progress.
-- **Login** — the on-screen keyboard's stray whitespace made every login fail.
-- **Crashes** — fourteen pages dereferenced null instead of navigating back after a
-  failed request; three scripts referenced in `index.html` did not exist; the
-  unload handler threw on its first line.
-- **Data loss** — deleting a server or user removed every later entry as well.
-- **Device identity** — all Wi-Fi-only sets reported the same device id, so two TVs
-  on one server shared a session and cancelled each other's transcodes.
+**Playback**
+- MP4 and MKV were transcoded unnecessarily, because Jellyfin reports a container
+  as ffprobe's whole format list (`mov,mp4,m4a,3gp,3g2,mj2`) and the comparison
+  expected one name. Transcoded streams could not start at all, as the player's
+  HLS marker had been removed.
+- Playback is now negotiated with the server through a DeviceProfile, replacing a
+  702-line client-side capability table that had drifted — it claimed HEVC level
+  5.1 on H-series panels that stop at 4.0.
+- `PlayMethod` went unset for audio-only transcodes, so the server rejected the
+  playback report and saved no resume point.
+- The picture was sized from the source file before playback began, so anything
+  the server rescaled was letterboxed against the wrong dimensions.
+- Live TV never released its tuner; buffering was left at firmware defaults.
 
-Still open: error handling around `JSON.parse`, URL encoding of user input,
-settings-file caching, and moving playback negotiation to a Jellyfin
-`DeviceProfile`.
+**Signing in**
+- The login screen appeared on every launch: nothing ever marked an account as
+  default, and a failure deleted the saved account outright. The access token is
+  now kept and reused.
+- **Quick Connect** — approve the TV from a phone instead of spelling a password
+  out with the remote. Red button on the login screen.
+- The on-screen keyboard's stray whitespace made every login fail.
+
+**Audio**
+- Whether Dolby or DTS can be passed through is now asked of the hardware rather
+  than of the user. Enabling DTS with nothing attached to decode it produced
+  silence; output now stays PCM unless a receiver confirms otherwise.
+
+**Robustness**
+- Fourteen pages dereferenced null instead of navigating back after a failed
+  request; three scripts referenced in `index.html` did not exist; the unload
+  handler threw on its first line.
+- Deleting a server or user removed every later entry as well.
+- All Wi-Fi-only sets reported the same device id, so two TVs on one server shared
+  a session and cancelled each other's transcodes.
+- The settings file is parsed through one guarded path — a single truncated write
+  used to leave the app unusable with no way to clear it from a TV.
+- The app no longer refuses to start on a network without internet access.
+- User input is escaped into URLs, so a search containing `&` no longer truncates.
+
+**Still open**
+- Trick play (`SetPlaybackSpeed`), 3D top-and-bottom mode, and a subtitle timing
+  offset — all available and unused.
+- Reporting capabilities to the server so remote control from another Jellyfin
+  client works.
+- General performance work, particularly startup: the app does a lot of
+  synchronous, blocking work between launch and the first screen.
+- Routing the several hundred debug `alert()` calls through `FileLog`, and
+  removing the dead code the audit catalogued.
