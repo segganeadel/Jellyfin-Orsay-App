@@ -38,6 +38,11 @@ var GuiPlayer = {
 		startParams : [],
 		infoTimer : null,
 
+		//Scanning speed: 1 is normal, negative is backwards. There is no way to
+		//read it back from the player, so it is tracked here.
+		playbackSpeed : 1,
+		speedUnsupported : false,
+
 		//Read from the player once the stream is open, rather than taken from
 		//the server's description of the source file.
 		decodedWidth : null,
@@ -166,6 +171,7 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 	this.decodedWidth = null;
 	this.decodedHeight = null;
 	this.playerDuration = null;
+	this.playbackSpeed = 1;
 	
 	//Expand TranscodeAlg to useful variables!!!
 	this.playingMediaSourceIndex = TranscodeAlg[0];
@@ -262,6 +268,9 @@ GuiPlayer.stopPlayback = function() {
 	this.clearGuiItems();
 	this.plugin.Stop();
 	this.Status = "STOPPED";
+	//The stream is gone; scanning state goes with it. speedUnsupported is a
+	//property of the hardware, so that is deliberately kept.
+	this.playbackSpeed = 1;
 	Server.videoStopped(this.PlayerData.Id,this.playingMediaSource.Id,this.currentTime,this.PlayMethod,this.PlaySessionId);
 	
 	//Tell the server to tear down the encode. This was gated to D-series, which
@@ -747,6 +756,7 @@ GuiPlayer.handleLeftKey = function() {
 };
 
 GuiPlayer.handlePlayKey = function() {
+	this.resetSpeed();
 	if (this.Status == "PAUSED") {
 		FileLog.write("Playback : Play by User");
 		this.Status = "PLAYING";
@@ -801,6 +811,7 @@ GuiPlayer.handleStopKey = function() {
 };
 
 GuiPlayer.handlePauseKey = function() {
+	this.resetSpeed();
 	if(this.Status == "PLAYING") {
 		document.getElementById("guiPlayer_Subtitles").style.bottom="100px";
 		if (document.getElementById("guiPlayer_Osd").style.opacity == 0) {
@@ -827,56 +838,98 @@ GuiPlayer.handlePauseKey = function() {
 	} 
 };
 
+//Shared by fast forward and rewind: bring the on-screen display up, then fade
+//it again once the user stops pressing.
+GuiPlayer.showSeekOsd = function() {
+	document.getElementById("guiPlayer_Subtitles").style.bottom="100px";
+	if (document.getElementById("guiPlayer_Osd").style.opacity == 0) {
+		$('#guiPlayer_Osd').css('opacity',0).animate({opacity:1}, 500);
+	}
+	if (this.infoTimer != null){
+		clearTimeout(this.infoTimer);
+	}
+	this.infoTimer = setTimeout(function(){
+		setTimeout(function(){
+			document.getElementById("guiPlayer_ItemDetails").style.visibility="hidden";
+			document.getElementById("guiPlayer_ItemDetails2").style.visibility="";
+			document.getElementById("guiPlayer_Subtitles").style.top="auto";
+			document.getElementById("guiPlayer_Subtitles").style.bottom="60px";
+		}, 500);
+		$('#guiPlayer_Osd').css('opacity',1).animate({opacity:0}, 500);
+	}, 3000);
+};
+
+//Try to scan at speed rather than jumping in fixed steps.
+//
+//Two things stop this being usable everywhere. The guide says SetPlaybackSpeed
+//has to follow Play(), and this app uses ResumePlay, so whether it works at all
+//is a question only the hardware can answer - hence the return value is checked
+//and a false sends us straight back to jumping. And scanning through a stream
+//the server is still encoding outruns the transcode, so it is only attempted on
+//a direct play.
+//
+//There is no way to read the current speed back, and no event when it changes,
+//so the value is tracked here.
+GuiPlayer.trySetSpeed = function(direction) {
+	if (this.PlayMethod != "DirectPlay") { return false; }
+	if (this.speedUnsupported) { return false; }
+
+	//Steps through 2, 4, 8 in the direction asked for. Pressing the opposite
+	//key starts again at the slowest speed that way.
+	var next;
+	if (direction > 0) {
+		next = (this.playbackSpeed >= 2) ? this.playbackSpeed * 2 : 2;
+		if (next > 8) { next = 2; }
+	} else {
+		next = (this.playbackSpeed <= -2) ? this.playbackSpeed * 2 : -2;
+		if (next < -8) { next = -2; }
+	}
+
+	var ok = false;
+	try { ok = this.plugin.SetPlaybackSpeed(next); } catch (e) { ok = false; }
+
+	if (ok === false || ok === undefined) {
+		//Remember, so every later press goes straight to jumping.
+		this.speedUnsupported = true;
+		FileLog.write("Playback : scanning not available, using jumps");
+		return false;
+	}
+
+	this.playbackSpeed = next;
+	FileLog.write("Playback : scanning at " + next + "x");
+	return true;
+};
+
+//Back to normal speed. Safe to call when already normal.
+GuiPlayer.resetSpeed = function() {
+	if (this.playbackSpeed == 1) { return; }
+	try { this.plugin.SetPlaybackSpeed(1); } catch (e) {}
+	this.playbackSpeed = 1;
+	FileLog.write("Playback : back to normal speed");
+};
+
 GuiPlayer.handleFFKey = function() {
 	FileLog.write("Playback : Fast Forward");
-    if(this.Status == "PLAYING") {
+	if (this.Status != "PLAYING") { return; }
+
+	if (!this.trySetSpeed(1)) {
 		//Jump* takes seconds, currentTime is in milliseconds. Re-indexing the
 		//subtitles by a different amount than the jump left them out of step.
 		GuiPlayer.updateSubtitleTime(this.currentTime + 30000,"FF");
-    	this.plugin.JumpForward(30);
-
-    	document.getElementById("guiPlayer_Subtitles").style.bottom="100px";
-		if (document.getElementById("guiPlayer_Osd").style.opacity == 0) {
-			$('#guiPlayer_Osd').css('opacity',0).animate({opacity:1}, 500);
-		} 
-		if (this.infoTimer != null){
-			clearTimeout(this.infoTimer);
-		}
-    	this.infoTimer = setTimeout(function(){
-			setTimeout(function(){
-				document.getElementById("guiPlayer_ItemDetails").style.visibility="hidden";
-				document.getElementById("guiPlayer_ItemDetails2").style.visibility="";
-				document.getElementById("guiPlayer_Subtitles").style.top="auto";
-				document.getElementById("guiPlayer_Subtitles").style.bottom="60px";
-			}, 500);
-			$('#guiPlayer_Osd').css('opacity',1).animate({opacity:0}, 500);
-		}, 3000);    	
-    }  
+		this.plugin.JumpForward(30);
+	}
+	this.showSeekOsd();
 };
 
 GuiPlayer.handleRWKey = function() {
 	FileLog.write("Playback : Rewind");
-    if(this.Status == "PLAYING") {
+	if (this.Status != "PLAYING") { return; }
+
+	if (!this.trySetSpeed(-1)) {
 		GuiPlayer.updateSubtitleTime(this.currentTime - 10000,"RW");
 		this.plugin.JumpBackward(10);
-
-		document.getElementById("guiPlayer_Subtitles").style.bottom="100px";
-		if (document.getElementById("guiPlayer_Osd").style.opacity == 0) {
-			$('#guiPlayer_Osd').css('opacity',0).animate({opacity:1}, 500);
-		} 
-		if (this.infoTimer != null){
-			clearTimeout(this.infoTimer);
-		}
-    	this.infoTimer = setTimeout(function(){
-			setTimeout(function(){
-				document.getElementById("guiPlayer_ItemDetails").style.visibility="hidden";
-				document.getElementById("guiPlayer_ItemDetails2").style.visibility="";
-				document.getElementById("guiPlayer_Subtitles").style.top="auto";
-				document.getElementById("guiPlayer_Subtitles").style.bottom="60px";
-			}, 500);
-			$('#guiPlayer_Osd').css('opacity',1).animate({opacity:0}, 500);
-		}, 3000);   
-    }  
+	}
+	this.showSeekOsd();
 };
 
 GuiPlayer.handleInfoKey = function () {
