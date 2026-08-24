@@ -792,6 +792,7 @@ Server.Authenticate = function(UserId, UserName, Password) {
     	this.setUserID(session.User.Id);
     	this.setUserName(UserName);
 		FileLog.write("User "+ UserName +" authenticated. ");
+		Server.reportCapabilities();
     	return true;
     }
 }
@@ -839,6 +840,7 @@ Server.authenticateWithToken = function(token, userId, userName) {
 	this.setUserID(me.Id);
 	this.setUserName(me.Name ? me.Name : userName);
 	FileLog.write("Auth : signed in as " + this.getUserName() + " with a saved token");
+	Server.reportCapabilities();
 	return true;
 }
 
@@ -912,7 +914,38 @@ Server.quickConnectAuthenticate = function(secret) {
 	this.setUserID(session.User.Id);
 	this.setUserName(session.User.Name);
 	FileLog.write("QuickConnect : signed in as " + session.User.Name);
+	Server.reportCapabilities();
 	return true;
+}
+
+// Tell the server what this client is, once signed in. Without this the session
+// shows up with no media types and no profile, and the server has to guess at
+// them for anything it decides on our behalf.
+//
+// SupportsMediaControl is deliberately false: remote control needs something
+// listening for commands, and there is nothing here. Claiming it would put the
+// TV in other clients' "play to" lists and then ignore them.
+Server.reportCapabilities = function() {
+	var body = {
+		"PlayableMediaTypes" : ["Video", "Audio", "Photo"],
+		"SupportedCommands" : [],
+		"SupportsMediaControl" : false,
+		"SupportsPersistentIdentifier" : true,
+		"DeviceProfile" : GuiPlayer_DeviceProfile.build()
+	};
+
+	var xmlHttp = new XMLHttpRequest();
+	if (!xmlHttp) { return; }
+	try {
+		//Async: nothing waits on the answer, and a failure here must not hold
+		//up the sign-in that just succeeded.
+		xmlHttp.open("POST", this.getServerAddr() + "/Sessions/Capabilities/Full", true);
+		xmlHttp = this.setRequestHeaders(xmlHttp);
+		xmlHttp.send(JSON.stringify(body));
+		FileLog.write("Session : capabilities reported");
+	} catch (e) {
+		FileLog.write("Session : could not report capabilities - " + e);
+	}
 }
 
 Server.Logout = function() {
