@@ -160,6 +160,11 @@ Main.onLoad = function()
 	var pluginNetwork = document.getElementById("pluginObjectNetwork");
 	var pluginTV = document.getElementById("pluginObjectTV");
 	FileLog.write("Plugins initialised.");
+
+	//Asking the plugin costs a round-trip and the answer cannot change while
+	//the app is running, so ask once. This was being called fourteen times.
+	var productCode = pluginTV.GetProductCode(0);
+	Main.productCode = productCode;
 	Main.probeAudioCapabilities();
 
 	//GetActiveType reports the interface in use: 1 wired, 0 wireless, -1 none.
@@ -181,31 +186,31 @@ Main.onLoad = function()
 	}
 	
 	//Get the model year - Used for transcoding
-	if (pluginTV.GetProductCode(0).substring(0,2) == "HT" || pluginTV.GetProductCode(0).substring(0,2) == "BD"){
-		this.modelYear = pluginTV.GetProductCode(0).substring(3,4);
+	if (productCode.substring(0,2) == "HT" || productCode.substring(0,2) == "BD"){
+		this.modelYear = productCode.substring(3,4);
 
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "H52") {
+	} else if (productCode.substring(4,7) == "H52") {
 		this.modelYear = "F";
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "J43") {
+	} else if (productCode.substring(4,7) == "J43") {
 		this.modelYear = "F";
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "J52") {
+	} else if (productCode.substring(4,7) == "J52") {
 		this.modelYear = "F";
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "J53") {
+	} else if (productCode.substring(4,7) == "J53") {
 		this.modelYear = "F";
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "J62") {
+	} else if (productCode.substring(4,7) == "J62") {
 		this.modelYear = "F";
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "J55") {
+	} else if (productCode.substring(4,7) == "J55") {
 		this.modelYear = "H";
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "J63") {
+	} else if (productCode.substring(4,7) == "J63") {
 		this.modelYear = "H";
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "J64") {
+	} else if (productCode.substring(4,7) == "J64") {
 		this.modelYear = "H";
-	} else if (pluginTV.GetProductCode(0).substring(4,6) == "HU") {
+	} else if (productCode.substring(4,6) == "HU") {
 		this.modelYear = "HU";
-	} else if (pluginTV.GetProductCode(0).substring(4,7) == "K85") {
+	} else if (productCode.substring(4,7) == "K85") {
 		this.modelYear = "HU";
 	} else {
-		this.modelYear = pluginTV.GetProductCode(0).substring(4,5);
+		this.modelYear = productCode.substring(4,5);
 	}
 	FileLog.write("Model Year is " + this.modelYear);
 	
@@ -226,7 +231,7 @@ Main.onLoad = function()
 		MAC = null;
 	}
 	FileLog.write("MAC address is "+MAC);
-	Server.setDevice ("Samsung " + pluginTV.GetProductCode(0));
+	Server.setDevice ("Samsung " + productCode);
 
     //Load Settings File - Check if file needs to be deleted due to development
     var fileJson = File.readSettings();
@@ -317,6 +322,7 @@ Main.onUnload = function()
 	GuiImagePlayer.kill();
 	GuiMusicPlayer.stopOnAppExit();
 	GuiPlayer.stopOnAppExit();
+	FileLog.flush();
 	pluginAPI.unregistKey(tvKey.KEY_TOOLS);
 	pluginAPI.unregistKey(tvKey.KEY_3D);
 	pluginAPI.unregistIMEKey();

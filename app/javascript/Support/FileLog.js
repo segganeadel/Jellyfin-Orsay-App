@@ -55,6 +55,8 @@ FileLog.deleteFile = function() {
 }
 
 FileLog.loadFile = function(returnContents) {
+	//Anything still queued has to be on disk before the file is read.
+	FileLog.flush();
 	var fileSystemObj = new FileSystem();
 	
 	var bValid = fileSystemObj.isValidCommonPath(curWidget.id); 
@@ -85,20 +87,70 @@ FileLog.loadFile = function(returnContents) {
 	}
 };
 
+//Lines waiting to be written. Opening, appending and closing the file for
+//every line is a filesystem round-trip each time, and this is called from the
+//playback path - on every buffering tick - which is exactly when the app can
+//least afford it. Lines are collected here and written in batches.
+FileLog.pending = [];
+FileLog.flushTimer = null;
+
+//Long enough to batch a burst, short enough that a crash loses very little.
+FileLog.FLUSH_DELAY = 2000;
+FileLog.MAX_PENDING = 40;
+
 FileLog.write = function (toWrite,noDate) {
-	
+
 	var writeDate = (noDate == undefined) ? true : false;
 	toWrite = (writeDate == true) ? FileLog.getTimeStamp() + " " + toWrite : toWrite;
+
+	//On this platform alert() goes to the debug log rather than opening a
+	//dialog, so it is the closest thing to a console this app has.
 	alert(toWrite);
-	var fileSystemObj = new FileSystem();
-	var openWrite = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Log.txt', 'a+');
-	if (openWrite) {
-		openWrite.writeLine(toWrite); 
-		fileSystemObj.closeCommonFile(openWrite); 
+
+	FileLog.pending.push(toWrite);
+
+	if (FileLog.pending.length >= FileLog.MAX_PENDING) {
+		FileLog.flush();
+		return;
+	}
+
+	if (FileLog.flushTimer == null) {
+		FileLog.flushTimer = setTimeout(function() { FileLog.flush(); }, FileLog.FLUSH_DELAY);
 	}
 }
 
+//Write everything waiting, in one open. Called on a timer, and directly before
+//anything that reads the log back or on the way out.
+FileLog.flush = function () {
+	if (FileLog.flushTimer != null) {
+		clearTimeout(FileLog.flushTimer);
+		FileLog.flushTimer = null;
+	}
+	if (FileLog.pending.length == 0) { return; }
+
+	//Take the batch first: if the write throws, the lines are already out of
+	//the queue and cannot pile up indefinitely.
+	var batch = FileLog.pending;
+	FileLog.pending = [];
+
+	try {
+		var fileSystemObj = new FileSystem();
+		var openWrite = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Log.txt', 'a+');
+		if (openWrite) {
+			for (var i = 0; i < batch.length; i++) {
+				openWrite.writeLine(batch[i]);
+			}
+			fileSystemObj.closeCommonFile(openWrite);
+		}
+	} catch (e) {
+		//Nowhere useful to report this: writing the log is what just failed.
+	}
+}
+
+
 FileLog.empty = function () {
+	//Drop anything queued too, or it would reappear after the clear.
+	FileLog.pending = [];
 	var fileSystemObj = new FileSystem();
 	var openWrite = fileSystemObj.openCommonFile(curWidget.id + '/MB3_Log.txt', 'w');
 	if (openWrite) {
