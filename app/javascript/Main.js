@@ -167,8 +167,17 @@ Main.onLoad = function()
 	Main.productCode = productCode;
 	Main.probeAudioCapabilities();
 
+	//Firmware and player build. GetPlayerVersion carries no security type, so
+	//it always answers, and it is what the guide points at for telling which
+	//player calls a set supports. Both go in the log and the stats panel: the
+	//capability table is a guess per model, and these say which build made it.
+	try { Main.firmware = NNaviPlugin.GetFirmware(); } catch (e) { Main.firmware = null; }
+	try { Main.playerVersion = document.getElementById("pluginPlayer").GetPlayerVersion(); } catch (e) { Main.playerVersion = null; }
+	FileLog.write("Device : firmware " + Main.firmware + ", player " + Main.playerVersion);
+
 	//GetActiveType reports the interface in use: 1 wired, 0 wireless, -1 none.
 	var interfaceType = pluginNetwork.GetActiveType();
+	Main.interfaceType = interfaceType;
 	FileLog.write("Active network interface is "+interfaceType+" (1=wired, 0=wireless)");
 
 	//These return 1 connected / 0 not connected / -1 on error. -1 is truthy in JS,

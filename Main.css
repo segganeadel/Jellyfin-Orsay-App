@@ -2470,3 +2470,23 @@ input[type="password"]
 	background-color:rgba(50,50,50,0.9);
 	padding:20px;
 }
+.videoStats {
+	position:absolute;
+	top:180px;
+	left:60px;
+	width:820px;
+	padding:18px 22px;
+	background:rgba(0,0,0,0.72);
+	border-left:4px solid #4a9;
+	color:#e8e8e8;
+	font-size:19px;
+	line-height:1.5;
+	z-index:60;
+}
+.videoStatsHeading {
+	color:#7cf;
+	font-size:17px;
+	letter-spacing:1px;
+	padding-top:10px;
+}
+.videoStatsKey { color:#9a9a9a; }

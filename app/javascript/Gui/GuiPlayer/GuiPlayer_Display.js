@@ -11,6 +11,7 @@ var GuiPlayer_Display = {
 		ItemData : null,
 		
 		videoToolsOptions : [],
+		barTimer : null,
 		videoToolsSelectedItem : 0,
 		subtitleIndexes : [], 
 		
@@ -213,6 +214,11 @@ GuiPlayer_Display.createToolsMenu = function() {
 		} 
 	}
 	
+	//Play and pause first, so the bar leads with the control people look for.
+	//There was no way to see or change playback state on screen at all.
+	this.videoToolsOptions.push("videoOptionPlayPause");
+	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionPlayPause" class="videoToolsItem">Pause</div>';
+
 	if (this.PlayerData.Chapters !== undefined) {
 		for (var index = 0; index < this.PlayerData.Chapters.length; index++) {
 			this.chapterIndexes.push(index);
@@ -289,6 +295,11 @@ GuiPlayer_Display.keyDownTools = function() {
 		case tvKey.KEY_PANEL_ENTER:
 			this.topLeftItem = 0;
 			switch (this.videoToolsOptions[this.videoToolsSelectedItem]) {
+			case "videoOptionPlayPause":
+				if (GuiPlayer.Status == "PLAYING") { GuiPlayer.handlePauseKey(); }
+				else { GuiPlayer.handlePlayKey(); }
+				GuiPlayer_Display.updatePlayPauseLabel();
+				break;
 			case "videoOptionChapters":
 				this.videoToolsSubOptions = this.chapterIndexes;
 				this.updateDisplayedItemsSub();
@@ -648,4 +659,182 @@ GuiPlayer_Display.updateDisplayedItemsSub = function() {
 		}	
 	}
 	document.getElementById("guiPlayer_Tools_SubOptions").style.visibility = "";
+};
+//The label has to follow the real state, not what was last pressed - the
+//remote's own play and pause keys change it too.
+GuiPlayer_Display.updatePlayPauseLabel = function() {
+	var el = document.getElementById("videoOptionPlayPause");
+	if (el == null) { return; }
+	el.innerHTML = (GuiPlayer.Status == "PLAYING") ? "Pause" : "Play";
+};
+
+//Is the bottom bar on screen?
+GuiPlayer_Display.isToolsVisible = function() {
+	var el = document.getElementById("guiPlayer_Tools");
+	return el != null && el.style.opacity != 0;
+};
+
+//Bring up the bar together with the time and progress above it. Previously
+//opening one hid the other, so the scrubber and the controls could never be
+//seen at the same time.
+GuiPlayer_Display.showBar = function() {
+	this.updatePlayPauseLabel();
+	this.updateSelectedItems();
+
+	if (document.getElementById("guiPlayer_Osd").style.opacity == 0) {
+		$('#guiPlayer_Osd').css('opacity',0).animate({opacity:1}, 500);
+	}
+	if (document.getElementById("guiPlayer_Tools").style.opacity != 1) {
+		$('#guiPlayer_Tools').css('opacity',0).animate({opacity:1}, 500);
+	}
+	document.getElementById("guiPlayer_Subtitles").style.top = "auto";
+	document.getElementById("guiPlayer_Subtitles").style.bottom = "100px";
+
+	this.scheduleBarHide();
+};
+
+//While playing the bar gets out of the way on its own. While paused it stays,
+//because a paused picture with no controls tells the user nothing.
+GuiPlayer_Display.scheduleBarHide = function() {
+	if (this.barTimer != null) {
+		clearTimeout(this.barTimer);
+		this.barTimer = null;
+	}
+	if (GuiPlayer.Status != "PLAYING") { return; }
+
+	this.barTimer = setTimeout(function() {
+		//Never pull it out from under a submenu the user has open.
+		if (document.getElementById("guiPlayer_Tools_SubOptions").style.visibility == "") { return; }
+		GuiPlayer_Display.hideBar();
+	}, 5000);
+};
+
+GuiPlayer_Display.hideBar = function() {
+	if (this.barTimer != null) {
+		clearTimeout(this.barTimer);
+		this.barTimer = null;
+	}
+	if (document.getElementById("guiPlayer_Tools").style.opacity != 0) {
+		$('#guiPlayer_Tools').css('opacity',1).animate({opacity:0}, 500);
+	}
+	if (document.getElementById("guiPlayer_Osd").style.opacity != 0) {
+		$('#guiPlayer_Osd').css('opacity',1).animate({opacity:0}, 500);
+	}
+	setTimeout(function(){
+		document.getElementById("guiPlayer_Subtitles").style.top = "auto";
+		document.getElementById("guiPlayer_Subtitles").style.bottom = "60px";
+	}, 500);
+};
+
+//////////////////////////////////////////////////////////////////////////////
+//  Playback statistics.
+//
+//  Answers "why does this look like that" without a PC: whether the file is
+//  playing untouched or being re-encoded and for what reason, what the decoder
+//  actually received as opposed to what the server described, and what the set
+//  itself is. Toggled with the yellow button during playback.
+//////////////////////////////////////////////////////////////////////////////
+
+GuiPlayer_Display.statsVisible = false;
+
+GuiPlayer_Display.toggleStats = function() {
+	this.statsVisible = !this.statsVisible;
+	document.getElementById("guiPlayer_Stats").style.visibility = this.statsVisible ? "" : "hidden";
+	if (this.statsVisible) { this.updateStats(); }
+};
+
+GuiPlayer_Display.statRow = function(label, value) {
+	if (value === undefined || value === null || value === "") { return ""; }
+	return "<span class='videoStatsKey'>" + label + "</span> " + value + "<br>";
+};
+
+//Reasons come back from the server as e.g. VideoCodecNotSupported; space the
+//words out rather than showing it verbatim.
+GuiPlayer_Display.readableReasons = function(reasons) {
+	if (!reasons) { return null; }
+	return reasons.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/,/g, ", ");
+};
+
+GuiPlayer_Display.updateStats = function() {
+	if (!this.statsVisible) { return; }
+	var el = document.getElementById("guiPlayer_Stats");
+	if (el == null) { return; }
+
+	var source = GuiPlayer.playingMediaSource;
+	var video = (source && source.MediaStreams) ? source.MediaStreams[GuiPlayer.playingVideoIndex] : null;
+	var audio = (source && source.MediaStreams) ? source.MediaStreams[GuiPlayer.playingAudioIndex] : null;
+
+	var html = "";
+
+	//--- how it is being delivered -----------------------------------------
+	html += "<div class='videoStatsHeading'>PLAYBACK</div>";
+	html += this.statRow("method", GuiPlayer.PlayMethod == "DirectPlay" ? "Direct play (no server work)" : "Transcoding");
+
+	//The server states why it would not send the file untouched.
+	if (GuiPlayer.PlayMethod != "DirectPlay" && GuiPlayer.playingURL) {
+		var match = GuiPlayer.playingURL.match(/TranscodeReasons=([^&|]*)/);
+		if (match) { html += this.statRow("reason", this.readableReasons(match[1])); }
+	}
+	html += this.statRow("negotiated by", GuiPlayer_Versions.serverNegotiated ? "server" : "app (fallback)");
+	html += this.statRow("container", source ? source.Container : null);
+
+	//--- video --------------------------------------------------------------
+	html += "<div class='videoStatsHeading'>VIDEO</div>";
+	if (video) {
+		var codec = video.Codec ? video.Codec.toUpperCase() : "?";
+		if (video.Profile) { codec += " " + video.Profile; }
+		//h264 reports level as the number times ten, HEVC times thirty - so the
+		//same 120 means 12.0 in one and 4.0 in the other.
+		if (video.Level) {
+			var isHevc = (video.Codec == "hevc" || video.Codec == "h265");
+			codec += " @L" + (video.Level / (isHevc ? 30 : 10));
+		}
+		html += this.statRow("codec", codec);
+		html += this.statRow("source", video.Width + "x" + video.Height);
+	}
+	//What the decoder actually got, which differs whenever the server rescaled.
+	if (GuiPlayer.decodedWidth > 0) {
+		html += this.statRow("decoded", GuiPlayer.decodedWidth + "x" + GuiPlayer.decodedHeight);
+	}
+	if (video) {
+		html += this.statRow("frame rate", video.AverageFrameRate ? Math.round(video.AverageFrameRate) + " fps" : null);
+		html += this.statRow("bitrate", video.BitRate ? Math.round(video.BitRate / 1000) + " kbps" : null);
+	}
+
+	//Only meaningful on an adaptive stream, so shown when the player answers.
+	try {
+		var live = GuiPlayer.plugin.GetCurrentBitrates();
+		if (live > 0) { html += this.statRow("current", Math.round(live / 1000) + " kbps"); }
+	} catch (e) {}
+
+	//--- audio --------------------------------------------------------------
+	html += "<div class='videoStatsHeading'>AUDIO</div>";
+	if (audio) {
+		html += this.statRow("codec", (audio.Codec ? audio.Codec.toUpperCase() : "?") +
+			(audio.Channels ? " " + audio.Channels + "ch" : ""));
+		html += this.statRow("language", audio.Language);
+	}
+	var outNames = ["PCM", "Dolby Digital", "DTS"];
+	html += this.statRow("output", outNames[GuiPlayer_Display.lastAudioOutMode] || "PCM");
+	html += this.statRow("receiver", Main.hasReceiver() ? "yes (HDMI/SPDIF)" : "no (TV speakers)");
+
+	//--- position -----------------------------------------------------------
+	html += "<div class='videoStatsHeading'>POSITION</div>";
+	html += this.statRow("time", Math.round(GuiPlayer.currentTime / 1000) + "s of " +
+		Math.round(GuiPlayer.getDurationMs() / 1000) + "s");
+	html += this.statRow("duration from", GuiPlayer.playerDuration > 0 ? "player" : "server metadata");
+	if (GuiPlayer.playbackSpeed != 1) { html += this.statRow("speed", GuiPlayer.playbackSpeed + "x"); }
+	if (GuiPlayer_Display.lastBufferPercent != null) {
+		html += this.statRow("buffer", GuiPlayer_Display.lastBufferPercent + "%");
+	}
+
+	//--- the set itself -----------------------------------------------------
+	html += "<div class='videoStatsHeading'>DEVICE</div>";
+	html += this.statRow("model", Main.productCode + " (series " + Main.getModelYear() + ")");
+	html += this.statRow("firmware", Main.firmware);
+	html += this.statRow("player", Main.playerVersion);
+	html += this.statRow("network", Main.interfaceType == 1 ? "wired" : (Main.interfaceType == 0 ? "wireless" : "unknown"));
+
+	html += "<div class='videoStatsHeading'>YELLOW to close</div>";
+	el.innerHTML = html;
 };

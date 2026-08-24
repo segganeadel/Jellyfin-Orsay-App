@@ -500,6 +500,7 @@ GuiPlayer.handleStreamNotFound = function() {
 };
 
 GuiPlayer.setCurrentTime = function(time) {
+	if (GuiPlayer_Display.statsVisible) { GuiPlayer_Display.updateStats(); }
 	if (this.Status == "PLAYING") {
 		this.currentTime = parseInt(time);
 
@@ -566,6 +567,7 @@ GuiPlayer.onBufferingStart = function() {
 };
 
 GuiPlayer.onBufferingProgress = function(percent) {
+	GuiPlayer_Display.lastBufferPercent = percent;
 	if (document.getElementById("guiPlayer_Loading").style.visibility == "" && percent > 5){
 		document.getElementById("guiPlayer_Loading").innerHTML = "Buffering " + percent + "%";
 	}
@@ -644,6 +646,11 @@ GuiPlayer.getDurationMs = function() {
 };
 
 GuiPlayer.clearGuiItems = function() {
+	//Neither the stats panel nor the bar should outlive the video.
+	GuiPlayer_Display.statsVisible = false;
+	var statsEl = document.getElementById("guiPlayer_Stats");
+	if (statsEl != null) { statsEl.style.visibility = "hidden"; }
+	GuiPlayer_Display.hideBar();
 	if (this.infoTimer != null){
 		clearTimeout(this.infoTimer);
 	}
@@ -695,22 +702,15 @@ GuiPlayer.keyDown = function() {
         case tvKey.KEY_3D:	
         	GuiPlayer.setupThreeDConfiguration();
 			break;
+        case tvKey.KEY_YELLOW:
+        	GuiPlayer_Display.toggleStats();
+        	break;
         case tvKey.KEY_TOOLS:
         case tvKey.KEY_DOWN:
         	widgetAPI.blockNavigation(event);
-    		if (this.infoTimer != null){
-    			clearTimeout(this.infoTimer);
-    		}
-    		if (document.getElementById("guiPlayer_Osd").style.opacity != 0) {
-    			$('#guiPlayer_Osd').css('opacity',1).animate({opacity:0}, 500);
-    		}
-    		document.getElementById("guiPlayer_Subtitles").style.top="auto";
-    		document.getElementById("guiPlayer_Subtitles").style.bottom="100px";
-    		GuiPlayer_Display.updateSelectedItems();
-    		if (document.getElementById("guiPlayer_Tools").style.opacity != 1) {
-    			$('#guiPlayer_Tools').css('opacity',0).animate({opacity:1}, 500);
-    		}
-    		document.getElementById("GuiPlayer_Tools").focus();
+        	if (this.infoTimer != null) { clearTimeout(this.infoTimer); }
+        	GuiPlayer_Display.showBar();
+        	document.getElementById("GuiPlayer_Tools").focus();
         	break;
         case tvKey.KEY_EXIT:
         	FileLog.write("EXIT KEY");
@@ -757,6 +757,11 @@ GuiPlayer.handleLeftKey = function() {
 
 GuiPlayer.handlePlayKey = function() {
 	this.resetSpeed();
+	//Back to playing: the bar can start counting itself down again.
+	setTimeout(function(){
+		GuiPlayer_Display.updatePlayPauseLabel();
+		GuiPlayer_Display.scheduleBarHide();
+	}, 50);
 	if (this.Status == "PAUSED") {
 		FileLog.write("Playback : Play by User");
 		this.Status = "PLAYING";
@@ -812,6 +817,9 @@ GuiPlayer.handleStopKey = function() {
 
 GuiPlayer.handlePauseKey = function() {
 	this.resetSpeed();
+	//A paused picture with no controls tells the user nothing, so show the bar
+	//and leave it up until playback resumes.
+	setTimeout(function(){ GuiPlayer_Display.showBar(); }, 50);
 	if(this.Status == "PLAYING") {
 		document.getElementById("guiPlayer_Subtitles").style.bottom="100px";
 		if (document.getElementById("guiPlayer_Osd").style.opacity == 0) {
@@ -1052,6 +1060,7 @@ GuiPlayer.setupAudioConfiguration = function() {
 	}
 
 	FileLog.write("Audio : " + codec + " -> output mode " + mode + " (0 PCM, 1 Dolby, 2 DTS)");
+	GuiPlayer_Display.lastAudioOutMode = mode;
 	this.pluginAudio.SetExternalOutMode(mode);
 };
 
