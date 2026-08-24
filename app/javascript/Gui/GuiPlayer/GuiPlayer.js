@@ -915,24 +915,52 @@ GuiPlayer.handleInfoKey = function () {
 //       GUIPLAYER 3D & AUDIO OUTPUT SETTERS
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
+//PL_SCREEN_3DEFFECT_MODE: 0 off, 1 top and bottom, 2 side by side.
 GuiPlayer.setupThreeDConfiguration = function() {
-	if (this.playingMediaSource.Video3DFormat !== undefined) {
-		if (this.pluginScreen.Flag3DEffectSupport()) {
-			switch (this.playingMediaSource.Video3DFormat) {
-			case "FullSideBySide":
-			case "HalfSideBySide":
-				result = GuiPlayer.pluginScreen.Set3DEffectMode(2);
-			break;
-			default:
-				this.pluginScreen.Set3DEffectMode(0);
-				break;
-			}
-		} else {
-			this.pluginScreen.Set3DEffectMode(0);
-		}
-	} else {
+	var format = (this.playingMediaSource == null) ? undefined : this.playingMediaSource.Video3DFormat;
+	if (format === undefined || format === null) {
 		this.pluginScreen.Set3DEffectMode(0);
+		return;
 	}
+
+	//Documented as returning a positive value when supported and a negative one
+	//when not, so a bare truthiness test counted -1 as a yes.
+	var supported = -1;
+	try { supported = this.pluginScreen.Flag3DEffectSupport(); } catch (e) { supported = -1; }
+	if (!(supported > 0)) {
+		this.pluginScreen.Set3DEffectMode(0);
+		return;
+	}
+
+	var mode = 0;
+	switch (format) {
+	case "FullSideBySide":
+	case "HalfSideBySide":
+		mode = 2;
+		break;
+	//Jellyfin reports these too, and they used to fall through to "off",
+	//leaving a top-and-bottom file playing as a squashed flat picture.
+	case "FullTopAndBottom":
+	case "HalfTopAndBottom":
+		mode = 1;
+		break;
+	default:
+		mode = 0;
+		break;
+	}
+
+	//The guide's own examples check a mode is available before selecting it.
+	if (mode != 0) {
+		var allowed = -1;
+		try { allowed = this.pluginScreen.Check3DEffectMode(mode); } catch (e) { allowed = -1; }
+		if (!(allowed > 0)) {
+			FileLog.write("Video : 3D mode " + mode + " not available, playing flat");
+			mode = 0;
+		}
+	}
+
+	FileLog.write("Video : 3D format " + format + " -> mode " + mode);
+	this.pluginScreen.Set3DEffectMode(mode);
 };
 
 GuiPlayer.setupAudioConfiguration = function() {
