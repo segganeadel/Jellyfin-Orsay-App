@@ -90,8 +90,20 @@ GuiPlayer_Versions.start = function(playerData,resumeTicks,playedFromPage) {
 	//Loop through all media sources and determine which is best
 	
 	FileLog.write("Video : Find Media Streams");
-	for(var index = 0; index < this.playbackInfo.MediaSources.length;index++) {
-		this.getMainStreamIndex(this.playbackInfo.MediaSources[index],index);
+	//If anything in selection throws, fail visibly and give the screen back.
+	//It used to die quietly mid-pipeline, leaving the spinner up over a page
+	//that no longer responded.
+	try {
+		for(var index = 0; index < this.playbackInfo.MediaSources.length;index++) {
+			this.getMainStreamIndex(this.playbackInfo.MediaSources[index],index);
+		}
+	} catch (e) {
+		FileLog.write("Video : stream selection failed - " + e);
+		document.getElementById("guiPlayer_Loading").style.visibility = "hidden";
+		GuiNotifications.setNotification("This file could not be prepared for playback.","Unable To Play");
+		Support.removeLatestURL();
+		document.getElementById(this.playedFromPage).focus();
+		return;
 	}
 	
 	//Turn each option into something the player can be handed. When the server
@@ -292,7 +304,14 @@ GuiPlayer_Versions.getMainStreamIndex = function(MediaSource, MediaSourceIndex) 
 			}
 		}
 	}
-	FileLog.write("Video : Audio language " + (MediaStreams[audioIndex].Language === undefined ? "unknown, defaulting to " + AudioLanguagePreferenece : MediaStreams[audioIndex].Language));
+	//A file can have no audio at all - the test clips that surfaced this were
+	//video-only - and indexing the stream list with -1 threw here, killing the
+	//whole selection with the loading spinner still up.
+	if (audioIndex == -1) {
+		FileLog.write("Video : No audio track in this file");
+	} else {
+		FileLog.write("Video : Audio language " + (MediaStreams[audioIndex].Language === undefined ? "unknown, defaulting to " + AudioLanguagePreferenece : MediaStreams[audioIndex].Language));
+	}
 	
 	//---------------------------------------------------------------------------
 	

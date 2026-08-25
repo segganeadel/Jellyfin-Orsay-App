@@ -42,13 +42,18 @@ GuiPlayer_Transcoding.start = function(showId, MediaSource,MediaSourceIndex, vid
 	this.videoIndex = videoIndex;
 	this.audioIndex = audioIndex;
 	
-	//Get the Streams actual index
+	//Get the Streams actual index. audioIndex is -1 for a video-only file, and
+	//indexing the stream list with it threw before any URL could be built.
 	var videoStreamIndex = this.MediaSource.MediaStreams[this.videoIndex].Index;
-	var audioStreamIndex = this.MediaSource.MediaStreams[this.audioIndex].Index;
+	var audioStreamIndex = (this.audioIndex == -1) ? -1 : this.MediaSource.MediaStreams[this.audioIndex].Index;
 
 	//Check Video & Audio Compatibility
 	this.checkCodec(videoIndex);
-	this.checkAudioCodec(audioIndex);
+	if (this.audioIndex == -1) {
+		this.isAudio = true; //No audio track: nothing to be incompatible.
+	} else {
+		this.checkAudioCodec(audioIndex);
+	}
 
 	var streamparams = "";
 	var transcodeStatus = "";
@@ -56,7 +61,7 @@ GuiPlayer_Transcoding.start = function(showId, MediaSource,MediaSourceIndex, vid
 	//If audiocheck failed convert to AAC OR AC3 depending on setting
 	//If audiocheck ok convert to AAC or dont convert & leave as original codec
 
-	var fileAudioCodec = this.MediaSource.MediaStreams[this.audioIndex].Codec.toLowerCase();
+	var fileAudioCodec = (this.audioIndex == -1) ? "none" : this.MediaSource.MediaStreams[this.audioIndex].Codec.toLowerCase();
 	var streamAudioCodec = "aac"; //Default, supported by all tv's (?)
 	var convertAACtoDolby = false;
 	if (File.getTVProperty("Dolby") && File.getTVProperty("AACtoDolby") && fileAudioCodec == "aac") {
@@ -76,14 +81,14 @@ GuiPlayer_Transcoding.start = function(showId, MediaSource,MediaSourceIndex, vid
 			streamparams = '/Stream.'+container+'?static=true&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();
 		} else {			
 			transcodeStatus = "Stream Copy - Audio Not First Track";
-			streamparams = '/master.m3u8?VideoStreamIndex='+videoStreamIndex+'&AudioStreamIndex='+audioStreamIndex+'&VideoCodec=copy&AudioCodec='+ streamAudioCodec + '&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True' + '&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();
+			streamparams = '/master.m3u8?VideoStreamIndex='+videoStreamIndex+((audioStreamIndex==-1)?'':'&AudioStreamIndex='+audioStreamIndex)+'&VideoCodec=copy&AudioCodec='+ streamAudioCodec + '&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True' + '&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();
 		}	
 	} else if (this.isVideo == false) {
 		transcodeStatus = "Transcoding Audio & Video";	
-		streamparams = '/master.m3u8?VideoStreamIndex='+videoStreamIndex+'&AudioStreamIndex='+audioStreamIndex+'&VideoCodec=h264&Profile=high&Level=41&MaxVideoBitDepth=8&MaxWidth=1920&VideoBitrate='+this.bitRateToUse+'&MaxFramerate='+this.maxFrameRate+'&AudioCodec=' + streamAudioCodec +'&AudioBitrate=360000&TranscodingMaxAudioChannels=6'+'&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True'+'&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();	
+		streamparams = '/master.m3u8?VideoStreamIndex='+videoStreamIndex+((audioStreamIndex==-1)?'':'&AudioStreamIndex='+audioStreamIndex)+'&VideoCodec=h264&Profile=high&Level=41&MaxVideoBitDepth=8&MaxWidth=1920&VideoBitrate='+this.bitRateToUse+'&MaxFramerate='+this.maxFrameRate+'&AudioCodec=' + streamAudioCodec +'&AudioBitrate=360000&TranscodingMaxAudioChannels=6'+'&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True'+'&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();	
 	} else if (this.isVideo == true && (this.isAudio == false || convertAACtoDolby == true)) {
 		transcodeStatus = "Transcoding Audio";	
-		streamparams = '/master.m3u8?VideoStreamIndex='+videoStreamIndex+'&AudioStreamIndex='+audioStreamIndex+'&VideoCodec=copy&AudioCodec='+ streamAudioCodec +'&audioBitrate=360000&TranscodingMaxAudioChannels=6'+'&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True'+'&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();
+		streamparams = '/master.m3u8?VideoStreamIndex='+videoStreamIndex+((audioStreamIndex==-1)?'':'&AudioStreamIndex='+audioStreamIndex)+'&VideoCodec=copy&AudioCodec='+ streamAudioCodec +'&audioBitrate=360000&TranscodingMaxAudioChannels=6'+'&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=True'+'&MediaSourceId='+this.MediaSource.Id + '&api_key=' + Server.getAuthToken();
 	}
 	var url = Server.getServerAddr() + '/Videos/' + showId + streamparams + '&DeviceId='+Server.getDeviceID();
 	FileLog.write("Video : Transcode Status : " + transcodeStatus);

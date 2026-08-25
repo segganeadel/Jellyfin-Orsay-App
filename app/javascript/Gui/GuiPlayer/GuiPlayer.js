@@ -110,11 +110,14 @@ GuiPlayer.start = function(title,url,startingPlaybackTick,playedFromPage,isCinem
 
     //Get Item Data (Media Streams)
     this.VideoData = Server.getContent(url);
-    if (this.VideoData == null) { return; }
+    //Every exit from here has to clear the spinner, or it is left over a page
+    //that is no longer doing anything - which is what the stuck "Loading" was.
+    if (this.VideoData == null) { this.abandonStart(); return; }
     
     this.PlayerIndex = 0; // Play All  - Default
     if (title == "PlayAll") {
     	if (this.VideoData.TotalRecordCount == 0) {
+    		this.abandonStart();
     		return;
     	}
     	if (this.startParams[4] === true && this.startParams[5] != null) {
@@ -125,7 +128,8 @@ GuiPlayer.start = function(title,url,startingPlaybackTick,playedFromPage,isCinem
     	this.PlayerData = this.VideoData.Items[this.PlayerIndex];
     } else {
     	if (this.VideoData.LocationType == "Virtual") {
-    		return
+    		this.abandonStart();
+    		return;
     	}
     	//Enter Cinema Mode?
     	var introsUrl = Server.getItemIntrosUrl(this.VideoData.Id);
@@ -145,6 +149,14 @@ GuiPlayer.start = function(title,url,startingPlaybackTick,playedFromPage,isCinem
     
 	//Load Versions
     GuiPlayer_Versions.start(this.PlayerData,startingPlaybackTick,playedFromPage);
+};
+
+//Give up before playback began: take the spinner down and hand the screen back.
+GuiPlayer.abandonStart = function() {
+	var el = document.getElementById("guiPlayer_Loading");
+	if (el != null) { el.style.visibility = "hidden"; }
+	var page = document.getElementById("guiLoading");
+	if (page != null) { page.style.visibility = "hidden"; }
 };
 
 GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
@@ -1026,8 +1038,13 @@ GuiPlayer.setupThreeDConfiguration = function() {
 
 GuiPlayer.setupAudioConfiguration = function() {
 
+	//A video-only file has no audio stream to configure output for.
+	if (this.playingAudioIndex == -1 || this.playingMediaSource == null) {
+		if (this.pluginAudio != null) { this.pluginAudio.SetExternalOutMode(0); }
+		return;
+	}
 	var audioInfoStream = this.playingMediaSource.MediaStreams[this.playingAudioIndex];
-	var codec = audioInfoStream.Codec.toLowerCase();
+	var codec = (audioInfoStream && audioInfoStream.Codec) ? audioInfoStream.Codec.toLowerCase() : "none";
 	
 	//If audio has been transcoded need to manually set codec as codec in stream info will be wrong
 	if ((File.getTVProperty("Dolby") && File.getTVProperty("AACtoDolby")) && audioInfoStream.Codec.toLowerCase() == "aac") {

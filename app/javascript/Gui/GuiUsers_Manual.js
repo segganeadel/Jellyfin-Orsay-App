@@ -6,7 +6,9 @@ var GuiUsers_Manual = {
 
 GuiUsers_Manual.start = function() {
 	FileLog.write("Page : GuiUsers_Manual");
-	GuiHelper.setControlButtons(null,null,null,null,"Return");
+	//Quick Connect is most wanted exactly here, where the alternative is
+	//spelling out a password on the on-screen keypad.
+	GuiHelper.setControlButtons("Quick Connect",null,null,null,"Return");
 	
 	//Reset Properties
 	this.selectedItem = 0;
@@ -119,11 +121,37 @@ var GuiUsers_Manual_Input  = function(id) {
     	    }
         });
         
+        //The keypad owns the keys while a field is focused, so Quick Connect
+        //has to be registered here rather than on the page behind it.
+        ime.setKeyFunc(tvKey.KEY_RED, function (keyCode) {
+            document.getElementById("NoKeyInput").focus();
+            GuiPage_QuickConnect.start();
+            return false;
+        });
+
         ime.setKeyFunc(tvKey.KEY_EXIT, function (keyCode) {
         	document.getElementById("NoKeyInput").focus();
         	widgetAPI.sendExitEvent();
         });   
     }
+};
+
+//index.html binds this, but it was never defined - focusing that anchor threw.
+GuiUsers_Manual.keyDown = function() {
+	var keyCode = event.keyCode;
+	switch (keyCode) {
+		case tvKey.KEY_RED:
+			GuiPage_QuickConnect.start();
+			break;
+		case tvKey.KEY_RETURN:
+		case tvKey.KEY_PANEL_RETURN:
+			widgetAPI.blockNavigation(event);
+			GuiUsers.start(false);
+			break;
+		case tvKey.KEY_EXIT:
+			widgetAPI.sendExitEvent();
+			break;
+	}
 };
 
 GuiUsers_Manual.keyDownPassword = function() {
