@@ -80,7 +80,7 @@ var GuiPage_Settings = {
 		ModelOverrideOptions : ["None","SEK-1000","SEK-2000","SEK-2500"],
 		ModelOverrideValues : ["None","SEK1000","SEK2000","SEK2500"],
 
-		HighlightColourOptions : ["Green","Silver","Red","Navy","Aqua","Purple"],
+		HighlightColourOptions : ["Jellyfin Blue","Silver","Red","Navy","Aqua","Purple"],
 		HighlightColourValues : [1,2,3,4,5,6]
 }
 

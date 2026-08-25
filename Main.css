@@ -801,38 +801,46 @@ input[type="password"]
 }
 
 .Series {
+	-webkit-box-sizing:border-box;
+	box-sizing:border-box;
 	width: 425px;
     height: 238px;
     display:inline-block;
     position:relative; 
     margin:4px;
-	border:3px solid rgba(0,0,0,0.8); 
-	border-radius: 10px;
+	border:6px solid rgba(0,0,0,0.8); 
+	border-radius: 6px;
     white-space:nowrap;
     text-overflow:ellipsis; 
     overflow: hidden; 
     background-repeat: no-repeat;
     background-position:center;
     background-size:auto 100%;
+	box-shadow: 0px 2px 8px 0px rgba(0,0,0,0.37);
 }
 
 .homePagePoster {
+	-webkit-box-sizing:border-box;
+	box-sizing:border-box;
 	width: 471px;
     height: 265px;
     display:inline-block;
     position:relative; 
     margin:0px;
-	border:3px solid rgba(0,0,0,0); 
-	border-radius: 0px;
+	border:6px solid rgba(0,0,0,0); 
+	border-radius: 6px;
     white-space:nowrap;
     text-overflow:ellipsis; 
     overflow: hidden; 
     background-repeat: no-repeat;
     background-position:center;
     background-size:auto 100%;
+	box-shadow: 0px 2px 8px 0px rgba(0,0,0,0.37);
 }
 
 .SeriesPortrait {
+	-webkit-box-sizing:border-box;
+	box-sizing:border-box;
 	width: 180px;
     height: 265px;
     display:inline-block;
@@ -842,17 +850,20 @@ input[type="password"]
     margin-bottom: 6px;
     margin-right: 6px;
     margin-left: 6px;
-    border:3px solid rgba(0,0,0,0);
-    border-radius: 0px;
+    border:6px solid rgba(0,0,0,0);
+    border-radius: 6px;
     white-space:nowrap;
     text-overflow:ellipsis; 
     overflow: hidden; 
     background-repeat: no-repeat;
     background-position:center;
     background-size: 100% 100%;
+	box-shadow: 0px 2px 8px 0px rgba(0,0,0,0.37);
 }
 
 .SeriesPortraitLarge {
+	-webkit-box-sizing:border-box;
+	box-sizing:border-box;
 	width: 235px;
     height: 348px;
     display:inline-block;
@@ -861,29 +872,33 @@ input[type="password"]
     margin-bottom: 9px;
     margin-right: 8px;
     margin-left: 8px;
-    border:3px solid rgba(0,0,0,0);
-    border-radius: 0px;
+    border:6px solid rgba(0,0,0,0);
+    border-radius: 6px;
     white-space:nowrap;
     text-overflow:ellipsis; 
     overflow: hidden; 
     background-repeat: no-repeat;
     background-position:center;
     background-size: 100% 100%;
+	box-shadow: 0px 2px 8px 0px rgba(0,0,0,0.37);
 }
 
 .Music {
+	-webkit-box-sizing:border-box;
+	box-sizing:border-box;
 	width: 224px;
     height: 224px;
     display:inline-block;
     position:relative; 
     margin:10px;
     color:#fff;
-    border-radius: 10px;
+    border-radius: 6px;
     white-space:nowrap;
     text-overflow:ellipsis; 
     overflow: hidden; 
     background-repeat: no-repeat;
     background-position:top;
+	box-shadow: 0px 2px 8px 0px rgba(0,0,0,0.37);
 }
 
 .Letter {
@@ -2141,7 +2156,7 @@ input[type="password"]
 }
 
 .highlight1Background {
-	background-color:rgba(39,164,54,0.85);
+	background-color:rgba(0,164,220,0.85);
 }
 
 .highlight2Background {
@@ -2165,7 +2180,7 @@ input[type="password"]
 }
 
 .highlight1Text {
-	color:rgba(39,164,54,1);
+	color:#00a4dc;
 }
 
 .highlight2Text {
@@ -2189,27 +2204,27 @@ input[type="password"]
 }
 
 .highlight1Boarder {
-	border:3px solid rgba(39,164,54,1);
+	border:6px solid #00a4dc;
 }
 
 .highlight2Boarder {
-	border:3px solid rgba(140,140,140,1);
+	border:6px solid rgba(140,140,140,1);
 }
 
 .highlight3Boarder {
-	border:3px solid rgba(255,0,0,1);
+	border:6px solid rgba(255,0,0,1);
 }
 
 .highlight4Boarder {
-	border:3px solid rgba(15,10,85,1);
+	border:6px solid rgba(15,10,85,1);
 }
 
 .highlight5Boarder {
-	border:3px solid rgba(43,168,176,1);
+	border:6px solid rgba(43,168,176,1);
 }
 
 .highlight6Boarder {
-	border:3px solid rgba(106,15,176,1);
+	border:6px solid rgba(106,15,176,1);
 }
 
 .musicPlaylist {
