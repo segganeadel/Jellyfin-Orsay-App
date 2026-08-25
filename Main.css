@@ -1609,160 +1609,40 @@ input[type="password"]
 
 /* ---------------------------------------------------------------------------   */
 
-.videoToolsOptions {
-	position:absolute;
-	bottom:100px;
-	left:0px;
-	width:400px;
-}
 
-.videoToolsOption {
-	position:relative;
-	left:20px;
-	width:380px;
-	height:80px;
-	line-height:80px;
-    margin:0px;
-    color:#fff;
-    font-size:1.2em;
-    padding:0px 20px 0px 20px;
-    white-space:nowrap;
-    text-overflow:ellipsis; 
-    overflow: hidden; 
-    border-radius:10px;
-}
 
-.videoToolsOptionSelected {
-	background-color:rgba(140,140,140,1);
-}
+
+
+
 
 /* ---------------------------------------------------------------------------   */
-.videoLoading {
-	padding:10px;
-	color:#fff;
-	position:absolute;
-	top:20px;
-    right:20px;
-    font-size:1.2em;
-    background-color:rgba(0,0,0,0.8);
-}
 
-.videoInfo {
-	padding:5px 10px;
-	text-align:left;
-	color:#fff;
-	position:absolute;
-	top:0px;
-    left:0px;
-    height:150px;
-    width:100%;
-    background-color:rgba(0,0,0,0.8);
-}
 
-.videoSubtitles {
-	position:absolute;
-	bottom:60px;
-	left:0px;
-	width:100%;
-	background-color:rgba(0,0,0,0);
-	text-align:center;
-}
 
-.videoTools {
-	position:absolute;
-	bottom:0px;
-	left:0px;
-	width:100%;
-	padding: 10px 20px;
-	text-align:left;
-	color: white;	
-}
 
-.videoToolsItem {
-	display:inline-block;
-	font-size:1.3em;
-	color: white;
-	height: 50px;	
-	padding:15px 30px 15px 30px;
-	border-radius:10px;
-}
 
-.videoToolsItemSelected {
-	background-color:rgba(140,140,140,1);
-}
 
-.videoToolsSlider {
-	position:absolute;
-	bottom:100px;
-	left:0px;
-	height:100px;
-	width:100%;
-	padding: 10px 20px;
-	text-align:left;
-	color: white;	
-	background-color:rgba(0,0,0,0.8);
-}
 
-.videoTools_SliderBar {
-	width:1800px;
-	height:10px;
-	position:absolute;
-	top:50px;
-    left:60px;
-    background-color:#fff;
-}
 
-.videoTools_SliderBarCurrent {
-	width:40px;
-	height:40px;
-	position:absolute;
-	top:35px;
-    
-    background-image:url('images/sliderPosition.png');
-	background-repeat: no-repeat;
-    background-position:center;
-}
 
-.videoTools_SliderBarCurrentTime {
-	position:absolute;
-	width:120px;
-	background-color:green;
-	text-align:center;
-}
 
-.videoInfo_Time {
-	position:absolute;
-	top:75px;
-    right:470px;
-}
 
-.videoInfo_ProgressBar {
-	width:750px;
-	height:10px;
-	position:relative;
-	top:50px;
-    left:1000px;
-    background-color:#555;
-}
 
-.videoInfo_ProgressBar_Current {
-	position:absolute;
-	top:25px;
-    left:500px;
-	width:0px;
-	height:10px;
-    background-color:#339933;
-}
 
-.videoInfo_Details {
-	position:absolute;
-	top:7px;
-    left:20px;
-    width:820px;
-    height:120px;
-    background-repeat: no-repeat;
-    background-position:left;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .videoItemDetails {
 	position:absolute;
@@ -2470,23 +2350,226 @@ input[type="password"]
 	background-color:rgba(50,50,50,0.9);
 	padding:20px;
 }
+
+/* ---------------------------------------------------------------------------
+   Video overlay.
+
+   Follows the Jellyfin web client's own player: no solid panels, just two
+   gradients fading out of the top and bottom edges, the accent blue #00a4dc
+   for anything active, and type sized for a television - the web client runs
+   at a 27px base on a TV, which is what the sizes here assume.
+
+   .videoInfo sits at the top of the screen, so a child positioned absolutely
+   inside it is effectively positioned against the screen. That is how the
+   clock and seek bar get down to the bottom without moving them in the markup.
+   --------------------------------------------------------------------------- */
+
+.videoInfo {
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:100%;
+	height:202px;
+	color:#fff;
+	background-image:-webkit-gradient(linear, left top, left bottom,
+		from(rgba(16,16,16,0.85)), to(rgba(16,16,16,0)));
+	background-image:-webkit-linear-gradient(top, rgba(16,16,16,0.85) 0%, rgba(16,16,16,0) 100%);
+}
+
+/* Title block, top left. */
+.videoInfo_Details {
+	position:absolute;
+	top:40px;
+	left:64px;
+	right:64px;
+	font-size:32px;
+	line-height:1.35;
+	color:#fff;
+	text-shadow:0px 2px 6px rgba(0,0,0,0.8);
+}
+
+/* Elapsed and remaining, either side of the seek bar. */
+.videoInfo_Time {
+	position:absolute;
+	top:876px;
+	left:64px;
+	width:1792px;
+	font-size:27px;
+	color:#fff;
+	text-shadow:0px 2px 6px rgba(0,0,0,0.8);
+}
+
+/* The seek bar itself: a thin track with the played portion in accent blue. */
+.videoInfo_ProgressBar {
+	position:absolute;
+	top:920px;
+	left:64px;
+	width:1792px;
+	height:6px;
+	border-radius:3px;
+	background-color:rgba(255,255,255,0.3);
+}
+
+.videoInfo_ProgressBar_Current {
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:0px;
+	height:6px;
+	border-radius:3px;
+	background-color:#00a4dc;
+}
+
+/* Subtitles clear the controls when they are up. */
+.videoSubtitles {
+	position:absolute;
+	bottom:60px;
+	left:0px;
+	width:100%;
+	text-align:center;
+}
+
+/* ---------------------------------------------------------------------------
+   Bottom bar: play/pause, chapters, subtitles, audio, position.
+   --------------------------------------------------------------------------- */
+
+.videoTools {
+	position:absolute;
+	bottom:0px;
+	left:0px;
+	width:100%;
+	height:150px;
+	padding:0px;
+	text-align:center;
+	color:#fff;
+	background-image:-webkit-gradient(linear, left bottom, left top,
+		from(rgba(16,16,16,0.9)), to(rgba(16,16,16,0)));
+	background-image:-webkit-linear-gradient(bottom, rgba(16,16,16,0.9) 0%, rgba(16,16,16,0) 100%);
+}
+
+.videoToolsItem {
+	display:inline-block;
+	margin:78px 8px 0px 8px;
+	padding:14px 30px;
+	font-size:27px;
+	line-height:1.35;
+	color:#fff;
+	border-radius:6px;
+	text-shadow:0px 2px 6px rgba(0,0,0,0.8);
+}
+
+/* Focus is the accent fill the web client uses, not a grey wash. */
+.videoToolsItemSelected {
+	background-color:#00a4dc;
+	color:#000;
+	text-shadow:none;
+}
+
+/* Submenu of tracks or chapters, anchored above the bar. */
+.videoToolsOptions {
+	position:absolute;
+	bottom:170px;
+	left:64px;
+	min-width:520px;
+	padding:11px 0px;
+	background-color:#101010;
+	border-radius:6px;
+	box-shadow:0px 8px 24px 2px rgba(0,0,0,0.6);
+	text-align:left;
+}
+
+.videoToolsOption {
+	padding:11px 27px 11px 16px;
+	font-size:27px;
+	line-height:1.35;
+	color:#fff;
+}
+
+.videoToolsOptionSelected {
+	background-color:rgba(255,255,255,0.12);
+}
+
+/* The position scrubber, shown when Position is chosen. */
+.videoToolsSlider {
+	position:absolute;
+	bottom:170px;
+	left:0px;
+	height:110px;
+	width:100%;
+	color:#fff;
+}
+
+.videoTools_SliderBar {
+	position:absolute;
+	top:60px;
+	left:64px;
+	width:1792px;
+	height:6px;
+	border-radius:3px;
+	background-color:rgba(255,255,255,0.3);
+}
+
+/* Round knob, matching the web client's slider thumb. */
+.videoTools_SliderBarCurrent {
+	position:absolute;
+	top:47px;
+	width:32px;
+	height:32px;
+	margin-left:-16px;
+	border-radius:16px;
+	background-color:#00a4dc;
+	background-image:none;
+	box-shadow:0px 2px 6px rgba(0,0,0,0.6);
+}
+
+.videoTools_SliderBarCurrentTime {
+	position:absolute;
+	top:0px;
+	width:150px;
+	margin-left:-75px;
+	padding:6px 0px;
+	font-size:24px;
+	text-align:center;
+	color:#fff;
+	background-color:#282828;
+	border-radius:6px;
+}
+
+/* Loading indicator, top right. */
+.videoLoading {
+	position:absolute;
+	top:24px;
+	right:24px;
+	padding:14px 24px;
+	font-size:27px;
+	color:#fff;
+	background-color:rgba(16,16,16,0.85);
+	border-radius:6px;
+}
+
+/* Statistics overlay, same palette as the rest of the player. */
 .videoStats {
 	position:absolute;
-	top:180px;
-	left:60px;
-	width:820px;
-	padding:18px 22px;
-	background:rgba(0,0,0,0.72);
-	border-left:4px solid #4a9;
-	color:#e8e8e8;
-	font-size:19px;
+	top:220px;
+	left:64px;
+	width:860px;
+	padding:24px 28px;
+	background-color:rgba(16,16,16,0.92);
+	border-radius:6px;
+	box-shadow:0px 8px 24px 2px rgba(0,0,0,0.6);
+	color:#fff;
+	font-size:22px;
 	line-height:1.5;
 	z-index:60;
 }
+
 .videoStatsHeading {
-	color:#7cf;
-	font-size:17px;
+	color:#00a4dc;
+	font-size:19px;
 	letter-spacing:1px;
-	padding-top:10px;
+	padding-top:14px;
 }
-.videoStatsKey { color:#9a9a9a; }
+
+.videoStatsKey {
+	color:rgba(255,255,255,0.7);
+}
