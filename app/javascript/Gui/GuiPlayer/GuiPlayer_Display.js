@@ -799,6 +799,10 @@ GuiPlayer_Display.updateStats = function() {
 	if (video) {
 		html += this.statRow("frame rate", video.AverageFrameRate ? Math.round(video.AverageFrameRate) + " fps" : null);
 		html += this.statRow("bitrate", video.BitRate ? Math.round(video.BitRate / 1000) + " kbps" : null);
+		html += this.statRow("bit depth", video.BitDepth ? video.BitDepth + "-bit" : null);
+		html += this.statRow("aspect", video.AspectRatio);
+		html += this.statRow("range", video.VideoRange);
+		html += this.statRow("interlaced", video.IsInterlaced === true ? "yes" : null);
 	}
 
 	//Only meaningful on an adaptive stream, so shown when the player answers.
@@ -813,6 +817,9 @@ GuiPlayer_Display.updateStats = function() {
 		html += this.statRow("codec", (audio.Codec ? audio.Codec.toUpperCase() : "?") +
 			(audio.Channels ? " " + audio.Channels + "ch" : ""));
 		html += this.statRow("language", audio.Language);
+		html += this.statRow("bitrate", audio.BitRate ? Math.round(audio.BitRate / 1000) + " kbps" : null);
+		html += this.statRow("sample rate", audio.SampleRate ? audio.SampleRate + " Hz" : null);
+		html += this.statRow("profile", audio.Profile);
 	}
 	var outNames = ["PCM", "Dolby Digital", "DTS"];
 	html += this.statRow("output", outNames[GuiPlayer_Display.lastAudioOutMode] || "PCM");
