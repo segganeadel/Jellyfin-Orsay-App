@@ -253,32 +253,47 @@ Server.getSeasonEpisodesURL = function(ShowID,SeasonID) {
 	return  Server.getServerAddr() + "/Shows/" + ShowID +  "/Episodes?format=json&ImageTypeLimit=1&seasonId="+SeasonID+"&userId="+Server.getUserID();
 }
 
-Server.getImageURL = function(itemId,imagetype,maxwidth,maxheight,unplayedcount,played,playedpercentage,chapter) {
+// Artwork. fillWidth/fillHeight make the server return an image already the
+// size it will be drawn at - on this hardware, scaling a full-size backdrop
+// down into a card is the slowest thing on the home screen. The tag makes the
+// URL content-addressed, so it can be cached forever and changes when the art
+// changes. Both are what the Jellyfin web client sends.
+//
+// Dimensions must be whole numbers or the server rejects the request.
+Server.buildImageQuery = function(path, width, height, tag) {
+	var q = path + "?quality=96";
+	if (width > 0) { q += "&fillWidth=" + Math.ceil(width); }
+	if (height > 0) { q += "&fillHeight=" + Math.ceil(height); }
+	if (tag) { q += "&tag=" + encodeURIComponent(tag); }
+	return q;
+};
+
+Server.getImageURL = function(itemId,imagetype,maxwidth,maxheight,unplayedcount,played,playedpercentage,chapter,tag) {
 	var query = "";
 	switch (imagetype) {
 	case "Primary":
-		query = "/Items/"+ itemId +"/Images/Primary/0?maxwidth="+maxwidth+"&maxheight="+maxheight + "&quality=90";
+		query = Server.buildImageQuery("/Items/" + itemId + "/Images/Primary/0", maxwidth, maxheight, tag);
 		break;
 	case "Banner":
-		query = "/Items/"+ itemId +"/Images/Banner/0?maxwidth="+maxwidth+"&maxheight="+maxheight + "&quality=90";
+		query = Server.buildImageQuery("/Items/" + itemId + "/Images/Banner/0", maxwidth, maxheight, tag);
 		break;
 	case "Backdrop":
-		query = "/Items/"+ itemId +"/Images/Backdrop/0?maxwidth="+maxwidth+"&maxheight="+maxheight + "&quality=90";
+		query = Server.buildImageQuery("/Items/" + itemId + "/Images/Backdrop/0", maxwidth, maxheight, tag);
 		break;
 	case "Thumb":
-		query = "/Items/"+ itemId +"/Images/Thumb/0?maxwidth="+maxwidth+"&maxheight="+maxheight + "&quality=90";
+		query = Server.buildImageQuery("/Items/" + itemId + "/Images/Thumb/0", maxwidth, maxheight, tag);
 		break;
 	case "Logo":
-		query = "/Items/"+ itemId +"/Images/Logo/0?maxwidth="+maxwidth+"&maxheight="+maxheight + "&quality=90";
+		query = Server.buildImageQuery("/Items/" + itemId + "/Images/Logo/0", maxwidth, maxheight, tag);
 		break;
 	case "Disc":
-		query = "/Items/"+ itemId +"/Images/Disc/0?maxwidth="+maxwidth+"&maxheight="+maxheight + "&quality=90";
+		query = Server.buildImageQuery("/Items/" + itemId + "/Images/Disc/0", maxwidth, maxheight, tag);
 		break;
 	case "UsersPrimary":
-		query = "/Users/" + itemId + "/Images/Primary?maxwidth="+maxwidth+"&maxheight="+maxheight + "&quality=90";
+		query = Server.buildImageQuery("/Users/" + itemId + "/Images/Primary", maxwidth, maxheight, tag);
 		break;
 	case "Chapter":
-		query = "/Items/" + itemId + "/Images/Chapter/" + chapter + "?maxwidth="+maxwidth+"&maxheight="+maxheight + "&quality=90";
+		query = Server.buildImageQuery("/Items/" + itemId + "/Images/Chapter/" + chapter, maxwidth, maxheight, tag);
 		break;
 	}
 
@@ -329,10 +344,10 @@ Server.getScreenSaverImageURL = function(itemId,imagetype,maxwidth,maxheight) {
 	var query = "";
 	switch (imagetype) {
 		case "Backdrop":
-			query =   Server.getServerAddr() + "/Items/"+ itemId +"/Images/Backdrop/0?quality=90&maxwidth="+maxwidth+"&maxheight="+maxheight;
+			query = Server.getServerAddr() + Server.buildImageQuery("/Items/" + itemId + "/Images/Backdrop/0", maxwidth, maxheight, null);
 			break;
 		case "Primary":
-			query =   Server.getServerAddr() + "/Items/"+ itemId +"/Images/Primary/0?quality=90&maxwidth="+maxwidth+"&maxheight="+maxheight;
+			query = Server.getServerAddr() + Server.buildImageQuery("/Items/" + itemId + "/Images/Primary/0", maxwidth, maxheight, null);
 			break;
 	}
 	var token = Server.getAuthToken();
@@ -346,19 +361,18 @@ Server.getBackgroundImageURL = function(itemId,imagetype,maxwidth,maxheight,unpl
 	switch (imagetype) {
 
 	case "Backdrop":
-		query =   Server.getServerAddr() + "/Items/"+ itemId +"/Images/Backdrop/"+index+"?maxwidth="+maxwidth+"&maxheight="+maxheight;
+		query = Server.getServerAddr() + Server.buildImageQuery("/Items/" + itemId + "/Images/Backdrop/" + index, maxwidth, maxheight, null);
 		break;
 	//Callers ask for Primary too. Without this the switch fell through and the
 	//function returned "&Quality=90&api_key=..." with no address or path at all.
 	case "Primary":
-		query =   Server.getServerAddr() + "/Items/"+ itemId +"/Images/Primary/0?maxwidth="+maxwidth+"&maxheight="+maxheight;
+		query = Server.getServerAddr() + Server.buildImageQuery("/Items/" + itemId + "/Images/Primary/0", maxwidth, maxheight, null);
 		break;
 	default:
 		FileLog.write("Image : no background URL for image type " + imagetype);
 		return null;
 	}
 
-	query = query + "&Quality=90";
 
 	var token = Server.getAuthToken();
 	return token ? query + "&api_key=" + token : query;
@@ -485,38 +499,67 @@ Server.videoStarted = function(showId,MediaSourceID,PlayMethod,PlaySessionId) {
 	}
 }
 
-Server.videoStopped = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionId) {
-	var url = this.serverAddr + "/Sessions/Playing/Stopped";
-	var xmlHttp = new XMLHttpRequest();
-	if (xmlHttp) {
-		var contentToPost = '{"QueueableMediaTypes":["Video"],"CanSeek":false,"ItemId":"'+showId+'","PlaySessionId":"'+PlaySessionId+'","MediaSourceId":"'+MediaSourceID+'","IsPaused":false,"IsMuted":false,"PositionTicks":'+(ticks*10000)+',"PlayMethod":"'+PlayMethod+'"}';
-		xmlHttp.open("POST", url , true); //must be true!
-		xmlHttp = this.setRequestHeaders(xmlHttp);
-		xmlHttp.send(contentToPost);
-	}
-}
+// One place that builds a playback report, so every one carries the same
+// fields. CanSeek was hardcoded false, which tells remote controls to disable
+// their seek bar; the player can seek, so it is true.
+Server.buildPlaybackReport = function(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId, isPaused, eventName) {
+	var report = {
+		"ItemId" : showId,
+		"MediaSourceId" : MediaSourceID,
+		"PositionTicks" : Math.round(ticks * 10000),
+		"PlayMethod" : PlayMethod,
+		"IsPaused" : isPaused === true,
+		"IsMuted" : false,
+		"CanSeek" : true,
+		"QueueableMediaTypes" : ["Video"]
+	};
+	//Without this the server cannot tie the report to the transcode session,
+	//so an abandoned encode is not reliably torn down.
+	if (PlaySessionId) { report.PlaySessionId = PlaySessionId; }
+	//The server uses this to decide how often to write progress to the database,
+	//and to distinguish a seek from the ten second tick.
+	if (eventName) { report.EventName = eventName; }
+	return JSON.stringify(report);
+};
 
-Server.videoPaused = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionId) {
-	var url = this.serverAddr + "/Sessions/Playing/Progress";
+Server.postPlaybackReport = function(path, body) {
+	var url = this.serverAddr + path;
 	var xmlHttp = new XMLHttpRequest();
-	if (xmlHttp) {
-		var contentToPost = '{"QueueableMediaTypes":["Video"],"CanSeek":false,"ItemId":"'+showId+'","PlaySessionId":"'+PlaySessionId+'","MediaSourceId":"'+MediaSourceID+'","IsPaused":true,"IsMuted":false,"PositionTicks":'+(ticks*10000)+',"PlayMethod":"'+PlayMethod+'"}';
-		xmlHttp.open("POST", url , true); //must be true!
-		xmlHttp = this.setRequestHeaders(xmlHttp);
-		xmlHttp.send(contentToPost);
-	}
-}
+	if (!xmlHttp) { return; }
+	xmlHttp.open("POST", url, true);
+	xmlHttp = this.setRequestHeaders(xmlHttp);
+	xmlHttp.send(body);
+};
 
-Server.videoTime = function(showId,MediaSourceID,ticks,PlayMethod,PlaySessionId) {
-	var url = this.serverAddr + "/Sessions/Playing/Progress";
-	var xmlHttp = new XMLHttpRequest();
-	if (xmlHttp) {
-		var contentToPost = '{"QueueableMediaTypes":["Video"],"CanSeek":false,"ItemId":"'+showId+'","PlaySessionId":"'+PlaySessionId+'","MediaSourceId":"'+MediaSourceID+'","IsPaused":false,"IsMuted":false,"PositionTicks":'+(ticks*10000)+',"PlayMethod":"'+PlayMethod+'"}';
-		xmlHttp.open("POST", url , true); //must be true!
-		xmlHttp = this.setRequestHeaders(xmlHttp);
-		xmlHttp.send(contentToPost);
+// Final position decides whether the item counts as watched. When the player
+// could not tell us where it stopped, report the full runtime rather than zero,
+// or a finished episode is never marked watched and Next Up never moves on.
+Server.videoStopped = function(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId, runtimeTicks) {
+	var positionTicks = ticks;
+	if (!(positionTicks > 0) && runtimeTicks > 0) {
+		positionTicks = runtimeTicks / 10000;
+		FileLog.write("Playback : no final position - reporting full runtime so it counts as watched");
 	}
-}
+	this.postPlaybackReport("/Sessions/Playing/Stopped",
+		this.buildPlaybackReport(showId, MediaSourceID, positionTicks, PlayMethod, PlaySessionId, false, null));
+};
+
+Server.videoPaused = function(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId) {
+	this.postPlaybackReport("/Sessions/Playing/Progress",
+		this.buildPlaybackReport(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId, true, "pause"));
+};
+
+// Resuming after a pause. Reported straight away rather than waiting for the
+// next tick, so other clients do not show us paused for another ten seconds.
+Server.videoUnpaused = function(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId) {
+	this.postPlaybackReport("/Sessions/Playing/Progress",
+		this.buildPlaybackReport(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId, false, "unpause"));
+};
+
+Server.videoTime = function(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId) {
+	this.postPlaybackReport("/Sessions/Playing/Progress",
+		this.buildPlaybackReport(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId, false, "timeupdate"));
+};
 
 Server.stopHLSTranscode = function(playSessionId) {
 	var url = this.serverAddr + "/Videos/ActiveEncodings?DeviceId="+this.DeviceID + (playSessionId ? "&PlaySessionId="+playSessionId : "");

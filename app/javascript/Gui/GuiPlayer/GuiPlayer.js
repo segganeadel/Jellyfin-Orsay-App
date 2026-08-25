@@ -285,7 +285,7 @@ GuiPlayer.stopPlayback = function() {
 	//The stream is gone; scanning state goes with it. speedUnsupported is a
 	//property of the hardware, so that is deliberately kept.
 	this.playbackSpeed = 1;
-	Server.videoStopped(this.PlayerData.Id,this.playingMediaSource.Id,this.currentTime,this.PlayMethod,this.PlaySessionId);
+	Server.videoStopped(this.PlayerData.Id,this.playingMediaSource.Id,this.currentTime,this.PlayMethod,this.PlaySessionId,this.PlayerData.RunTimeTicks);
 	
 	//Tell the server to tear down the encode. This was gated to D-series, which
 	//left every other model relying on the stop report alone to reap ffmpeg.
@@ -776,6 +776,9 @@ GuiPlayer.handlePlayKey = function() {
 		GuiPlayer_Display.updatePlayPauseLabel();
 		GuiPlayer_Display.scheduleBarHide();
 	}, 50);
+	if (this.playingMediaSource != null) {
+		Server.videoUnpaused(this.PlayerData.Id, this.playingMediaSource.Id, this.currentTime, this.PlayMethod, this.PlaySessionId);
+	}
 	if (this.Status == "PAUSED") {
 		FileLog.write("Playback : Play by User");
 		this.Status = "PLAYING";
