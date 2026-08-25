@@ -51,15 +51,24 @@ GuiPage_QuickConnect.start = function() {
 	FileLog.write("QuickConnect : code " + this.code);
 
 	document.getElementById("pageContent").className = "";
+	//pageContent carries no colour of its own, so without this the whole page
+	//inherits a dim default and reads as though it is not in focus.
+	document.getElementById("pageContent").style.color = "#ffffff";
 	document.getElementById("pageContent").innerHTML =
-		"<div style='padding-top:120px;text-align:center'>" +
-			"<div style='font-size:44px;padding-bottom:30px'>Quick Connect</div>" +
-			"<div style='font-size:26px;padding-bottom:10px'>On your phone or computer, sign in to Jellyfin and enter this code:</div>" +
-			"<div id='quickConnectCode' style='font-size:96px;letter-spacing:14px;padding:30px 0'>" + this.code + "</div>" +
-			"<div id='quickConnectStatus' style='font-size:24px'>Waiting for you to approve it&hellip;</div>" +
-			"<div style='font-size:20px;padding-top:40px;opacity:0.7'>Press RETURN to go back and sign in with a password instead.</div>" +
+		"<div style='padding-top:150px;text-align:center;color:#ffffff'>" +
+			"<div style='font-size:49px;padding-bottom:36px'>Quick Connect</div>" +
+			"<div style='font-size:27px;color:rgba(255,255,255,0.7);padding-bottom:8px'>" +
+				"On your phone or computer, sign in to Jellyfin and enter this code" +
+			"</div>" +
+			"<div id='quickConnectCode' style='font-size:110px;letter-spacing:16px;" +
+				"color:#00a4dc;padding:30px 0px'>" + this.code + "</div>" +
+			"<div id='quickConnectStatus' style='font-size:27px;color:#ffffff'>" +
+				"Waiting for you to approve it&hellip;" +
+			"</div>" +
+			"<div style='font-size:22px;color:rgba(255,255,255,0.7);padding-top:48px'>" +
+				"Press RETURN to go back and sign in with a password instead." +
+			"</div>" +
 		"</div>";
-
 	document.getElementById("GuiPage_QuickConnect").focus();
 	this.scheduleNextPoll();
 }

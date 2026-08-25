@@ -278,6 +278,12 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 };
 
 GuiPlayer.stopPlayback = function() {
+	//Playback turned the television's own screensaver off so it could not cut
+	//in over a film. Turn it back on now, or one video leaves the set without
+	//a screensaver for the rest of the session.
+	Support.screensaverOn();
+	pluginAPI.setOnScreenSaver();
+
 	FileLog.write("Playback : Stopping");
 	this.clearGuiItems();
 	this.plugin.Stop();

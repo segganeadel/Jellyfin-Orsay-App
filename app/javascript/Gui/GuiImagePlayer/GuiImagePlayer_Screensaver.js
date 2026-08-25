@@ -75,6 +75,17 @@ GuiImagePlayer_Screensaver.start = function() {
 		}		
 	}
 
+	//A library with no photographs, or no artwork large enough, leaves this
+	//list empty - and the slideshow then holds a black screen for as long as
+	//the set is left alone. Stand down instead and let the television's own
+	//screensaver take over, which is the better picture anyway.
+	if (this.images.length === 0) {
+		FileLog.write("Screensaver : nothing to show - leaving it to the TV");
+		Main.setIsScreensaverRunning(); //back to false
+		pluginAPI.setOnScreenSaver();
+		return;
+	}
+
 	//Hide Page Contents
 	document.getElementById("everything").style.visibility="hidden";
 

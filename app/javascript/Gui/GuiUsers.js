@@ -7,6 +7,7 @@ var GuiUsers = {
 	
 	selectedUser : 0,
 	selectedRow : 0,
+	optionRows : ["QuickConnect", "ManualLogin", "ChangeServer"],
 	topLeftItem : 0, 
 	MAXCOLUMNCOUNT : 3,
 	MAXROWCOUNT : 1
@@ -19,7 +20,7 @@ GuiUsers.getMaxDisplay = function() {
 GuiUsers.start = function(runAutoLogin) {
 	FileLog.write("Page : GuiUsers");
 	//The coloured keys did real work here but were unlabelled, so nobody knew.
-	GuiHelper.setControlButtons("Quick Connect","Delete Users","Delete Passwords","Change Server","Exit  ");
+	GuiHelper.setControlButtons(null,"Delete Users","Delete Passwords","Change Server","Exit  ");
 	Support.removeSplashScreen();
 	
 	//Reset Properties
@@ -93,6 +94,7 @@ GuiUsers.start = function(runAutoLogin) {
 				"</div><br>" +
 			"</div>" +
 	    	"<div id='loginOptions' class='loginOptions'>" +
+	    		"<div id='QuickConnect'>Quick Connect</div>" +
 	    		"<div id='ManualLogin'>Manual Login</div>" +
 	    		"<div id='ChangeServer'>Change Server</div> " +
 	    		"<div><br>Available options for each page are shown at the bottom.<br>Once logged in, move left on any page to access the main menu.</div>" +
@@ -123,6 +125,28 @@ GuiUsers.updateDisplayedUsers = function() {
 	//Set Content to Server Data
 	document.getElementById("guiUsers_allusers").innerHTML = htmltoadd;
 }
+
+
+//Highlights whichever row is selected. Row 0 is the user strip; anything
+//below indexes optionRows.
+GuiUsers.updateSelectedRow = function () {
+	for (var i = 0; i < this.optionRows.length; i++) {
+		var el = document.getElementById(this.optionRows[i]);
+		if (el != null) {
+			el.className = (this.selectedRow === i + 1) ? "highlight1Text" : "offWhite";
+		}
+	}
+
+	if (this.selectedRow === 0) {
+		GuiUsers.updateSelectedUser();
+	} else if (this.UserData.length > 0 && this.UserData[this.selectedUser]) {
+		//Take the ring off the user while a row below is selected.
+		var user = document.getElementById(this.UserData[this.selectedUser].Id);
+		if (user != null) { user.className = "User"; }
+	}
+
+	this.isManualEntry = (this.optionRows[this.selectedRow - 1] === "ManualLogin");
+};
 
 //Function sets CSS Properties so show which user is selected
 GuiUsers.updateSelectedUser = function () {	
@@ -229,32 +253,15 @@ GuiUsers.keyDown = function()
 			widgetAPI.sendReturnEvent();
 			break;
 		case tvKey.KEY_UP:
-			this.selectedRow--;
-			if (this.selectedRow < 1) {
-				this.selectedRow = 0;
-				document.getElementById("ManualLogin").className = "offWhite";
-				GuiUsers.updateSelectedUser();
-			} else if (this.selectedRow == 1) {
-				this.isManualEntry = true;
-				document.getElementById("ManualLogin").className = "highlight1Text";
-				document.getElementById("ChangeServer").className = "offWhite";
-				document.getElementById(this.UserData[this.selectedUser].Id).className = "User"; 
-			} else if (this.selectedRow == 2) {
-				document.getElementById("ManualLogin").className = "offWhite";
-				document.getElementById("ChangeServer").className = "highlight1Text";
+			if (this.selectedRow > 0) {
+				this.selectedRow--;
+				this.updateSelectedRow();
 			}
 			break;
 		case tvKey.KEY_DOWN:
-			this.selectedRow++;
-			if (this.selectedRow == 1) {
-				this.isManualEntry = true;
-				document.getElementById("ManualLogin").className = "highlight1Text";
-				document.getElementById("ChangeServer").className = "offWhite";
-				document.getElementById(this.UserData[this.selectedUser].Id).className = "User"; 
-			} else if (this.selectedRow > 1) {
-				this.selectedRow = 2;
-				document.getElementById("ManualLogin").className = "offWhite";
-				document.getElementById("ChangeServer").className = "highlight1Text";
+			if (this.selectedRow < this.optionRows.length) {
+				this.selectedRow++;
+				this.updateSelectedRow();
 			}
 			break;
 		case tvKey.KEY_LEFT:
@@ -298,16 +305,15 @@ GuiUsers.keyDown = function()
 			break;
 		case tvKey.KEY_ENTER:
 		case tvKey.KEY_PANEL_ENTER:
-			if (this.selectedRow == 0) {
+			if (this.selectedRow === 0) {
 				GuiUsers.processSelectedUser();
-			} else if (this.selectedRow == 1) {
-				GuiUsers_Manual.start();
-			} else if (this.selectedRow == 2) {
-				GuiPage_Servers.start();
+				break;
 			}
-			break;	
-		case tvKey.KEY_RED:
-			GuiPage_QuickConnect.start();
+			switch (this.optionRows[this.selectedRow - 1]) {
+				case "QuickConnect":  GuiPage_QuickConnect.start(); break;
+				case "ManualLogin":   GuiUsers_Manual.start(); break;
+				case "ChangeServer":  GuiPage_Servers.start(); break;
+			}
 			break;
 		case tvKey.KEY_BLUE:
 			Server.setServerAddr("");
