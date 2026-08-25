@@ -26,20 +26,22 @@ input[type="password"]
 
 .loading{
     position:absolute;
-    top:440px;
-    left:860px;
-    height:200px;
-    width:200px;
-    background-repeat: no-repeat;
-    background-position:center;
-    background-size:contain;
-    background-image: url('images/loading.png');
+    top:490px;
+    left:910px;
+    height:100px;
+    width:100px;
+    -webkit-box-sizing:border-box;
+    box-sizing:border-box;
+    border:8px solid #00a4dc;
+    border-bottom-color:transparent;
+    border-radius:50px;
+    background-image:none;
     -webkit-animation-name: spin;
-    -webkit-animation-duration: 1250ms;
+    -webkit-animation-duration: 1000ms;
     -webkit-animation-iteration-count: infinite;
     -webkit-animation-timing-function: linear;
     animation-name: spin;
-    animation-duration: 1250ms;
+    animation-duration: 1000ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
     z-index:15;

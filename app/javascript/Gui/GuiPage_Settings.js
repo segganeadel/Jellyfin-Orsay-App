@@ -23,7 +23,7 @@ var GuiPage_Settings = {
 		//Per Setting Type List of settings, names & defaults
 		Settings : ["Default","HighlightColour","ContinueWatching","View1","View2","LargerView","AudioTheme","MusicView","SkipMusicAZ","SkipShow","SeasonLabel","AutoPlay","EnableCinemaMode","ShowDisc","SubtitleSize","SubtitleColour","ImagePlayerImageTime","ScreensaverImages","ScreensaverTimeout","ScreensaverImageTime","ForgetSavedPassword"],
 		SettingsName : ["Default User: ","Highlight Colour: ","Continue Watching: ","Home View 1: ","Home View 2: ","Show Larger Icons: ", "Play Audio Themes: ", "Default Music View: ", "Skip Music A-Z: ", "Skip TV Show Page: ","Use Alternate Season Label: ","Auto Play Next Episode: ","Enable cinema mode: ","Show Disc Art: ","Subtitle Text Size: ","Subtitle Text Colour: ","Image Player Rotate Speed: ", "Screensaver Image Source: ", "Screensaver Timeout: ", "Screensaver Rotate Speed: ", "Forget Password at Log Out:"],
-		SettingsDefaults : [false,1,true,"ddddd","aaaaa",false,false,"Album",false,false,false,false,true,true,"50px","white",10000,"Media",300000,10000,false],
+		SettingsDefaults : [false,1,true,"ddddd","aaaaa",true,false,"Album",false,false,false,false,true,true,"50px","white",10000,"Media",300000,10000,false],
 		
 		TVSettings : ["Bitrate","Dolby","DTS","AACtoDolby","ServerNegotiation","ItemPaging","ClockOffset","ModelOverride"],
 		TVSettingsName : ["Max Bitrate: ","Enable Dolby Digital Playback: ","Enable DTS Playback: ","Enable AAC Transcoding to Dolby: ","Let Server Choose Playback: ","Item Paging: ","Clock Offset: ","Evolution Kit: "],
