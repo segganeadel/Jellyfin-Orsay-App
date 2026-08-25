@@ -161,6 +161,7 @@ GuiPlayer.abandonStart = function() {
 };
 
 GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
+	Server.reportMediaType = "Video";
 	//Initiate Player for Video
 	this.init();
 	FileLog.write("Playback : Player Initialised");

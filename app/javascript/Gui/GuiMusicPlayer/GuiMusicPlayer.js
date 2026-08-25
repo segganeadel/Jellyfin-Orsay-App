@@ -28,6 +28,7 @@ GuiMusicPlayer.onFocus = function() {
 }
 
 GuiMusicPlayer.init = function() {
+	Server.reportMediaType = "Audio";
 	GuiPlayer.stopOnAppExit();
 
 	this.pluginMusic = document.getElementById("pluginPlayer");

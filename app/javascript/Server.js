@@ -502,6 +502,11 @@ Server.videoStarted = function(showId,MediaSourceID,PlayMethod,PlaySessionId) {
 // One place that builds a playback report, so every one carries the same
 // fields. CanSeek was hardcoded false, which tells remote controls to disable
 // their seek bar; the player can seek, so it is true.
+// Video and music share the one player object, so only one can be running at
+// a time and a single value here is safe. Reporting music as Video put the
+// wrong media type on the session in every other client's view.
+Server.reportMediaType = "Video";
+
 Server.buildPlaybackReport = function(showId, MediaSourceID, ticks, PlayMethod, PlaySessionId, isPaused, eventName) {
 	var report = {
 		"ItemId" : showId,
@@ -511,7 +516,7 @@ Server.buildPlaybackReport = function(showId, MediaSourceID, ticks, PlayMethod, 
 		"IsPaused" : isPaused === true,
 		"IsMuted" : false,
 		"CanSeek" : true,
-		"QueueableMediaTypes" : ["Video"]
+		"QueueableMediaTypes" : [Server.reportMediaType]
 	};
 	//Without this the server cannot tie the report to the transcode session,
 	//so an abandoned encode is not reliably torn down.
