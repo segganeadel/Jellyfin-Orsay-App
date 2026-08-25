@@ -835,6 +835,57 @@ GuiPlayer_Display.updateStats = function() {
 	html += this.statRow("player", Main.playerVersion);
 	html += this.statRow("network", Main.interfaceType == 1 ? "wired" : (Main.interfaceType == 0 ? "wireless" : "unknown"));
 
+	//--- what the server is doing with it ----------------------------------
+	html += "<div class='videoStatsHeading'>SERVER</div>";
+	html += this.statRow("address", Server.getServerAddr());
+	html += this.statRow("version", ServerVersion.ServerInfo ? ServerVersion.ServerInfo.Version : null);
+	html += this.statRow("session", GuiPlayer.PlaySessionId ? GuiPlayer.PlaySessionId.substring(0,12) + "\u2026" : "none");
+	if (GuiPlayer.LiveStreamId) { html += this.statRow("live stream", "open (tuner held)"); }
+	html += this.statRow("profile", "Orsay " + Main.getModelYear() + ", max " +
+		Math.round(GuiPlayer_DeviceProfile.getMaxBitrate() / 1000000) + " Mbps");
+
+	//--- the file as the library has it -------------------------------------
+	html += "<div class='videoStatsHeading'>FILE</div>";
+	if (source) {
+		html += this.statRow("size", source.Size ? (source.Size / 1048576).toFixed(1) + " MB" : null);
+		html += this.statRow("total bitrate", source.Bitrate ? Math.round(source.Bitrate / 1000) + " kbps" : null);
+		html += this.statRow("protocol", source.Protocol);
+		//Where the file physically is, trimmed to the end that identifies it.
+		if (source.Path) {
+			var path = source.Path;
+			html += this.statRow("path", path.length > 52 ? "\u2026" + path.substring(path.length - 52) : path);
+		}
+		html += this.statRow("streams", source.MediaStreams ? source.MediaStreams.length : null);
+	}
+
+	//--- subtitles ----------------------------------------------------------
+	var subs = (source && source.MediaStreams && GuiPlayer.playingSubtitleIndex > -1)
+		? source.MediaStreams[GuiPlayer.playingSubtitleIndex] : null;
+	html += "<div class='videoStatsHeading'>SUBTITLES</div>";
+	if (subs) {
+		html += this.statRow("showing", (subs.Codec ? subs.Codec.toUpperCase() : "?") +
+			(subs.Language ? " (" + subs.Language + ")" : ""));
+		html += this.statRow("drawn by", "the app, from SRT");
+		html += this.statRow("cues", GuiPlayer.PlayerDataSubtitle ? GuiPlayer.PlayerDataSubtitle.length : null);
+	} else {
+		html += this.statRow("showing", "off");
+	}
+
+	//--- connection ---------------------------------------------------------
+	html += "<div class='videoStatsHeading'>CONNECTION</div>";
+	html += this.statRow("network", Main.interfaceType == 1 ? "wired (100 Mbit port)" :
+		(Main.interfaceType == 0 ? "wireless" : "unknown"));
+	//A rough read on whether the link is keeping up: how much of real time the
+	//position has advanced by since playback started.
+	if (GuiPlayer.videoStartTime != null && GuiPlayer.playStartedAt != null) {
+		var wall = (new Date().getTime() - GuiPlayer.playStartedAt) / 1000;
+		var moved = (GuiPlayer.currentTime - GuiPlayer.videoStartTime) / 1000;
+		if (wall > 3) {
+			html += this.statRow("keeping up", Math.round((moved / wall) * 100) + "% of real time");
+		}
+	}
+	html += this.statRow("device id", Server.getDeviceID() ? Server.getDeviceID().substring(0,12) + "\u2026" : null);
+
 	html += "<div class='videoStatsHeading'>YELLOW to close</div>";
 	el.innerHTML = html;
 };

@@ -41,6 +41,7 @@ var GuiPlayer = {
 		//Scanning speed: 1 is normal, negative is backwards. There is no way to
 		//read it back from the player, so it is tracked here.
 		playbackSpeed : 1,
+		playStartedAt : null,
 		speedUnsupported : false,
 
 		//Read from the player once the stream is open, rather than taken from
@@ -184,6 +185,7 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 	this.decodedHeight = null;
 	this.playerDuration = null;
 	this.playbackSpeed = 1;
+	this.playStartedAt = new Date().getTime();
 	
 	//Expand TranscodeAlg to useful variables!!!
 	this.playingMediaSourceIndex = TranscodeAlg[0];
