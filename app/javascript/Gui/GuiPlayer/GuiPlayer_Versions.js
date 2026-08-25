@@ -235,15 +235,14 @@ GuiPlayer_Versions.getMainStreamIndex = function(MediaSource, MediaSourceIndex) 
 	var videoIndex = -1, audioIndex = -1, subtitleIndex = -1;
 	var indexOfFirstAudio = -1;
 	
-	var userURL = Server.getServerAddr() + "/Users/" + Server.getUserID() + "?format=json";
-	var UserData = Server.getContent(userURL);
-	if (UserData == null) { return; }
+	var Configuration = Server.getUserConfiguration();
+	if (Configuration == null) { return; }
 	
-	var AudioLanguagePreferenece = (UserData.Configuration.AudioLanguagePreference !== undefined) ? UserData.Configuration.AudioLanguagePreference : "none";
-	var PlayDefaultAudioTrack = (UserData.Configuration.PlayDefaultAudioTrack !== undefined) ? UserData.Configuration.PlayDefaultAudioTrack: false;
+	var AudioLanguagePreferenece = (Configuration.AudioLanguagePreference !== undefined) ? Configuration.AudioLanguagePreference : "none";
+	var PlayDefaultAudioTrack = (Configuration.PlayDefaultAudioTrack !== undefined) ? Configuration.PlayDefaultAudioTrack: false;
 	
-	var SubtitlePreference = (UserData.Configuration.SubtitleMode !== undefined) ? UserData.Configuration.SubtitleMode : "Default";
-	var SubtitleLanguage = (UserData.Configuration.SubtitleLanguagePreference !== undefined) ? UserData.Configuration.SubtitleLanguagePreference : "eng";
+	var SubtitlePreference = (Configuration.SubtitleMode !== undefined) ? Configuration.SubtitleMode : "Default";
+	var SubtitleLanguage = (Configuration.SubtitleLanguagePreference !== undefined) ? Configuration.SubtitleLanguagePreference : "eng";
 	
 	FileLog.write("Video : Audio Play Default Track Setting: " + PlayDefaultAudioTrack);
 	FileLog.write("Video : Audio Language Preference Setting: " + AudioLanguagePreferenece);

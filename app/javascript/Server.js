@@ -454,7 +454,32 @@ Server.getUserViews = function () {
 //------------------------------------------------------------
 //      Settings Functions
 //------------------------------------------------------------
+// The account and its preferences, fetched once. Choosing which streams to
+// play asks for this for every media source on the item, and it is the same
+// answer each time - on a server across a network that is a blocking round
+// trip per version, paid every time playback starts.
+//
+// Dropped whenever those preferences are written, and at sign-in and out, so
+// a change made here or in another client is picked up.
+Server.userConfiguration = null;
+
+Server.getUserConfiguration = function() {
+	if (this.userConfiguration != null) { return this.userConfiguration; }
+
+	var url = this.getServerAddr() + "/Users/" + this.getUserID() + "?format=json";
+	var user = Server.getContent(url);
+	if (user == null || user.Configuration == null) { return null; }
+
+	this.userConfiguration = user.Configuration;
+	return this.userConfiguration;
+};
+
+Server.clearUserConfiguration = function() {
+	this.userConfiguration = null;
+};
+
 Server.updateUserConfiguration = function(contentToPost) {
+	Server.clearUserConfiguration();
 	var url = this.serverAddr + "/Users/" + Server.getUserID() + "/Configuration";
 	var xmlHttp = new XMLHttpRequest();
 	if (xmlHttp) {
@@ -1005,6 +1030,7 @@ Server.Logout = function() {
 
 	//Forget the saved sign-in, or the next launch would sign straight back in.
 	File.clearSavedLogin();
+	Server.clearUserConfiguration();
 	this.AuthenticationToken = null;
 
 	//Close down any running items
