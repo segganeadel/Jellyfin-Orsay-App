@@ -21,6 +21,19 @@ var GuiPlayer_Versions = {
 		MediaSelections : [],
 }
 
+//A media source with an audio stream but no video stream. These are handled
+//as audio, separately from the video pipeline below.
+GuiPlayer_Versions.isAudioOnly = function(mediaSource) {
+	if (mediaSource == null || mediaSource.MediaStreams == null) { return false; }
+	var hasVideo = false, hasAudio = false;
+	for (var i = 0; i < mediaSource.MediaStreams.length; i++) {
+		var type = mediaSource.MediaStreams[i].Type;
+		if (type == "Video") { hasVideo = true; }
+		if (type == "Audio") { hasAudio = true; }
+	}
+	return (hasAudio && !hasVideo);
+};
+
 GuiPlayer_Versions.start = function(playerData,resumeTicks,playedFromPage) {
 	//Reset Vars
 	this.MediaOptions.length = 0;
@@ -59,6 +72,14 @@ GuiPlayer_Versions.start = function(playerData,resumeTicks,playedFromPage) {
 		FileLog.write("Video : No playback info returned by the server");
 		GuiNotifications.setNotification("The server did not return any playable media for this item.","Cannot Play");
 		Support.processReturnURLHistory();
+		return;
+	}
+
+	//Separate logic: an item with audio but no video plays through the music
+	//player. The video pipeline below has nothing to show for it.
+	if (this.isAudioOnly(this.playbackInfo.MediaSources[0])) {
+		FileLog.write("Video : audio-only item - playing as audio");
+		GuiMusicPlayer.start("Song", Server.getItemInfoURL(this.PlayerData.Id), this.playedFromPage, false);
 		return;
 	}
 
