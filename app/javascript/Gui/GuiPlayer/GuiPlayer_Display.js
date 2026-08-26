@@ -75,6 +75,10 @@ GuiPlayer_Display.setDisplay = function(playerdata,playingmediasource,playingtra
     		document.getElementById("guiPlayer_Info_Details").innerHTML = "";
     		var imgsrc = Server.getImageURL(this.PlayerData.SeriesId,"Logo",820,110,0,false,0);
     		document.getElementById("guiPlayer_Info_Details").style.backgroundImage="url('"+imgsrc+"')";	
+    	} else {
+    		//No logo: the title text goes top-left, where the web client puts it.
+    		document.getElementById("guiPlayer_Info_Details").style.backgroundImage="";
+    		document.getElementById("guiPlayer_Info_Details").innerHTML = fileInfo;
 		}
     	
         //Add the TV series DVD cover art to the GUI display.
@@ -114,6 +118,10 @@ GuiPlayer_Display.setDisplay = function(playerdata,playingmediasource,playingtra
     		document.getElementById("guiPlayer_Info_Details").innerHTML = "";
     		var imgsrc = Server.getImageURL(this.PlayerData.Id,"Logo",820,110,0,false,0);
     		document.getElementById("guiPlayer_Info_Details").style.backgroundImage="url('"+imgsrc+"')";	
+    	} else {
+    		//No logo: the title text goes top-left, where the web client puts it.
+    		document.getElementById("guiPlayer_Info_Details").style.backgroundImage="";
+    		document.getElementById("guiPlayer_Info_Details").innerHTML = fileInfo;
     	}
     	
         //Add the movie DVD cover art to the GUI display.
@@ -149,7 +157,7 @@ GuiPlayer_Display.setDisplay = function(playerdata,playingmediasource,playingtra
     
    	var videoName = this.playingMediaSource.Name;
     document.getElementById("guiPlayer_ItemDetails_Title").innerHTML = fileInfo;
-    document.getElementById("guiPlayer_ItemDetails_Title2").innerHTML = fileInfo;
+    //Title now shown at the top, not in a bar behind the controls.
     document.getElementById("guiPlayer_ItemDetails_SubData").innerHTML = videoName + " : " + this.playingTranscodeStatus; 
     document.getElementById("guiPlayer_ItemDetails_SubData2").innerHTML = videoName + " : " + this.playingTranscodeStatus; 
     
@@ -268,14 +276,14 @@ GuiPlayer_Display.createToolsMenu = function() {
 	   	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionAudio" class="videoToolsItem";">Audio</div>';
 	}
 	
-	//Add Slider Bar
-	this.videoToolsOptions.push("videoOptionSlider");
-	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionSlider" class="videoToolsItem";">Position</div>';
+	//The OSD already shows a seek bar, so no separate Position control.
 };
 
 
 GuiPlayer_Display.keyDownTools = function() {
 	var keyCode = event.keyCode;
+	//Any interaction keeps the bar up; it was hiding mid-navigation.
+	GuiPlayer_Display.scheduleBarHide();
 	this.videoToolsSelectedItemSub = 0;
 	document.getElementById("guiPlayer_Tools_SubOptions").innerHTML = "";
 
@@ -750,6 +758,8 @@ GuiPlayer_Display.hideBar = function() {
 		clearTimeout(this.barTimer);
 		this.barTimer = null;
 	}
+	//Return focus to the video, or the next DOWN goes to the hidden bar.
+	document.getElementById("GuiPlayer").focus();
 	if (document.getElementById("guiPlayer_Tools").style.opacity != 0) {
 		$('#guiPlayer_Tools').css('opacity',1).animate({opacity:0}, 500);
 	}

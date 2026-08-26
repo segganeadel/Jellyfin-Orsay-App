@@ -105,8 +105,9 @@ GuiPage_Settings.initiateViewValues = function() {
 GuiPage_Settings.start = function(viewToDisplay) {	
 	FileLog.write("Page : GuiPage_Settings");
 	
-	//Reset Vars
-	this.selectedItem = 0;
+	//Reset Vars. selectedItem -1 means the tab row is active, so entering
+	//Settings lands on the first tab rather than the first option inside it.
+	this.selectedItem = -1;
 	this.currentPage = 0;
 	this.selectedBannerItem = -1;
 	this.selectedSubItem = 0;
@@ -171,6 +172,10 @@ GuiPage_Settings.start = function(viewToDisplay) {
 		document.getElementById("guiTV_Show_Title").innerHTML = "Server Settings for "+this.UserData.UserName;	
 	}
 	
+	//Highlight the tab that matches the view just loaded.
+	this.selectedBannerItem = this.bannerItems.indexOf(this.currentView);
+	if (this.selectedBannerItem < 0) { this.selectedBannerItem = 0; }
+
 	//Update Displayed & Updates Settings
 	this.updateDisplayedItems();
 	this.updateSelectedItems();
