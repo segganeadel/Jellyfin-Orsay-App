@@ -187,6 +187,7 @@ GuiPlayer.startPlayback = function(TranscodeAlg, resumeTicksSamsung) {
 	this.playerDuration = null;
 	this.playbackSpeed = 1;
 	this.playStartedAt = new Date().getTime();
+	this.lastDisplayArea = null;
 	
 	//Expand TranscodeAlg to useful variables!!!
 	this.playingMediaSourceIndex = TranscodeAlg[0];
@@ -308,6 +309,17 @@ GuiPlayer.stopPlayback = function() {
 	}
 };
 
+//The picture is positioned from OnStreamInfoReady, which some streams fire
+//more than once. Re-seating it to the same place each time is what made the
+//video appear to jiggle, so only touch it when the rectangle actually moves.
+GuiPlayer.lastDisplayArea = null;
+GuiPlayer.applyDisplayArea = function(x, y, w, h) {
+	var key = x + "," + y + "," + w + "," + h;
+	if (this.lastDisplayArea === key) { return; }
+	this.lastDisplayArea = key;
+	this.plugin.SetDisplayArea(x, y, w, h);
+};
+
 GuiPlayer.setDisplaySize = function() {
 	var stream = this.playingMediaSource.MediaStreams[this.playingVideoIndex];
 	var aspectRatio = (stream === undefined) ? "16:9" : stream.AspectRatio;
@@ -323,13 +335,13 @@ GuiPlayer.setDisplaySize = function() {
 	}
 
 	if (aspectRatio == "16:9") {
-		this.plugin.SetDisplayArea(0, 0, 960, 540);
+		this.applyDisplayArea(0, 0, 960, 540);
 	} else if (aspectRatio == "4:3") {
 		var newResolutionX = Math.round(540 * 4 / 3);
 		var newResolutionY = 540;
 		var centering = Math.round((960 - newResolutionX)/2);
 
-		this.plugin.SetDisplayArea(parseInt(centering), parseInt(0), parseInt(newResolutionX), parseInt(newResolutionY));
+		this.applyDisplayArea(parseInt(centering), 0, parseInt(newResolutionX), parseInt(newResolutionY));
 	} else if (width > 0 && height > 0) {
 		//Scale Video
 		var ratioToShrinkX = 960 / width;
@@ -340,18 +352,18 @@ GuiPlayer.setDisplaySize = function() {
 			var newResolutionY = Math.round(height * ratioToShrinkX);
 			var centering = Math.round((540-newResolutionY)/2);
 
-			this.plugin.SetDisplayArea(parseInt(0), parseInt(centering), parseInt(newResolutionX), parseInt(newResolutionY));
+			this.applyDisplayArea(0, parseInt(centering), parseInt(newResolutionX), parseInt(newResolutionY));
 		} else {
 			var newResolutionX = Math.round(width * ratioToShrinkY);
 			var newResolutionY = 540;
 			var centering = Math.round((960-newResolutionX)/2);
 
-			this.plugin.SetDisplayArea(parseInt(centering), parseInt(0), parseInt(newResolutionX), parseInt(newResolutionY));
+			this.applyDisplayArea(parseInt(centering), 0, parseInt(newResolutionX), parseInt(newResolutionY));
 		}
 	} else {
 		//No dimensions from either source: fill the screen rather than
 		//dereferencing a stream that is not there.
-		this.plugin.SetDisplayArea(0, 0, 960, 540);
+		this.applyDisplayArea(0, 0, 960, 540);
 	}
 };
 

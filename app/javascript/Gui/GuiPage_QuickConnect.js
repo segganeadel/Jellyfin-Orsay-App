@@ -55,7 +55,7 @@ GuiPage_QuickConnect.start = function() {
 	//inherits a dim default and reads as though it is not in focus.
 	document.getElementById("pageContent").style.color = "#ffffff";
 	document.getElementById("pageContent").innerHTML =
-		"<div style='padding-top:150px;text-align:center;color:#ffffff'>" +
+		"<div style='position:relative;z-index:5;padding-top:150px;text-align:center;color:#ffffff'>" +
 			"<div style='font-size:49px;padding-bottom:36px'>Quick Connect</div>" +
 			"<div style='font-size:27px;color:rgba(255,255,255,0.7);padding-bottom:8px'>" +
 				"On your phone or computer, sign in to Jellyfin and enter this code" +

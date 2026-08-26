@@ -58,6 +58,9 @@ GuiPlayer_Display.setDisplay = function(playerdata,playingmediasource,playingtra
     document.getElementById("pageBackgroundFade").style.visibility="hidden";
     document.getElementById("pageBackgroundHolder").style.visibility="hidden";
     document.getElementById("pageBackground").style.visibility="hidden";
+    //This one was never hidden, so an 86% black div sat over the video the whole
+    //time it played. It is the reason the picture looked dimmed.
+    document.getElementById("itemBackgroundFade").style.visibility="hidden";
     document.getElementById("guiPlayer_Loading").style.visibility = ""; 
     document.getElementById("guiPlayer_Ratings").innerHTML="";
 
@@ -172,6 +175,7 @@ GuiPlayer_Display.restorePreviousMenu = function() {
     document.getElementById("pageBackgroundFade").style.visibility="";
     document.getElementById("pageBackgroundHolder").style.visibility="";
     document.getElementById("pageBackground").style.visibility="";
+    document.getElementById("itemBackgroundFade").style.visibility="";
     document.getElementById("page").style.visibility="";
     
     //Reset Volume & Mute Keys
