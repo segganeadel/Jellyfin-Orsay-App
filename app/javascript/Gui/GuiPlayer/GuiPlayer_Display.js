@@ -198,6 +198,20 @@ GuiPlayer_Display.restorePreviousMenu = function() {
 //GUIPLAYER TOOLS MENU FUNCTIONS
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
+//Drawn transport icons, from CSS triangles and bars - a glyph font is not
+//dependable here. Written once so the quoting lives in one place.
+GuiPlayer_Display.icon = function(name) {
+	switch (name) {
+		case 'play':  return "<span class='playerIcon iconPlay'></span>";
+		case 'pause': return "<span class='playerIcon iconPause'><span class='iconPauseBar'></span><span class='iconPauseBar'></span></span>";
+		case 'rew':   return "<span class='playerIcon'><span class='iconTriLeft'></span><span class='iconTriLeft'></span></span>";
+		case 'ff':    return "<span class='playerIcon'><span class='iconTriRight'></span><span class='iconTriRight'></span></span>";
+		case 'prev':  return "<span class='playerIcon'><span class='iconBarThin'></span><span class='iconTriLeft'></span></span>";
+		case 'next':  return "<span class='playerIcon'><span class='iconTriRight'></span><span class='iconBarThin'></span></span>";
+	}
+	return "";
+};
+
 GuiPlayer_Display.createToolsMenu = function() {
     //Create Tools Menu Subtitle
     //Must reset tools menu here on each playback!
@@ -220,8 +234,17 @@ GuiPlayer_Display.createToolsMenu = function() {
 	
 	//Play and pause first, so the bar leads with the control people look for.
 	//There was no way to see or change playback state on screen at all.
+	//The transport group, in the web client's order.
+	this.videoToolsOptions.push("videoOptionPrev");
+	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionPrev" class="videoToolsItem videoToolsItemIcon">' + this.icon("prev") + '</div>';
+	this.videoToolsOptions.push("videoOptionRewind");
+	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionRewind" class="videoToolsItem videoToolsItemIcon">' + this.icon("rew") + '</div>';
 	this.videoToolsOptions.push("videoOptionPlayPause");
-	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionPlayPause" class="videoToolsItem videoToolsItemIcon"><span class="playerIcon iconPause"><span class="iconPauseBar"></span><span class="iconPauseBar"></span></span></div>';
+	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionPlayPause" class="videoToolsItem videoToolsItemIcon">' + this.icon("pause") + '</div>';
+	this.videoToolsOptions.push("videoOptionForward");
+	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionForward" class="videoToolsItem videoToolsItemIcon">' + this.icon("ff") + '</div>';
+	this.videoToolsOptions.push("videoOptionNext");
+	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionNext" class="videoToolsItem videoToolsItemIcon">' + this.icon("next") + '</div>';
 
 	if (this.PlayerData.Chapters !== undefined) {
 		for (var index = 0; index < this.PlayerData.Chapters.length; index++) {
@@ -299,11 +322,19 @@ GuiPlayer_Display.keyDownTools = function() {
 		case tvKey.KEY_PANEL_ENTER:
 			this.topLeftItem = 0;
 			switch (this.videoToolsOptions[this.videoToolsSelectedItem]) {
+			case "videoOptionPrev":
+				GuiPlayer.handleLeftKey(); break;
+			case "videoOptionRewind":
+				GuiPlayer.handleRWKey(); break;
 			case "videoOptionPlayPause":
 				if (GuiPlayer.Status == "PLAYING") { GuiPlayer.handlePauseKey(); }
 				else { GuiPlayer.handlePlayKey(); }
 				GuiPlayer_Display.updatePlayPauseLabel();
 				break;
+			case "videoOptionForward":
+				GuiPlayer.handleFFKey(); break;
+			case "videoOptionNext":
+				GuiPlayer.handleRightKey(); break;
 			case "videoOptionChapters":
 				this.videoToolsSubOptions = this.chapterIndexes;
 				this.updateDisplayedItemsSub();
@@ -670,7 +701,7 @@ GuiPlayer_Display.updatePlayPauseLabel = function() {
 	var el = document.getElementById("videoOptionPlayPause");
 	if (el == null) { return; }
 	//Playing shows the pause icon; paused shows the play icon.
-	el.innerHTML = (GuiPlayer.Status == "PLAYING") ? "<span class='playerIcon iconPause'><span class='iconPauseBar'></span><span class='iconPauseBar'></span></span>" : "<span class='playerIcon iconPlay'></span>";
+	el.innerHTML = (GuiPlayer.Status == "PLAYING") ? GuiPlayer_Display.icon("pause") : GuiPlayer_Display.icon("play");
 };
 
 //Is the bottom bar on screen?
