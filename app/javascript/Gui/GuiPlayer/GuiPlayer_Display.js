@@ -221,7 +221,7 @@ GuiPlayer_Display.createToolsMenu = function() {
 	//Play and pause first, so the bar leads with the control people look for.
 	//There was no way to see or change playback state on screen at all.
 	this.videoToolsOptions.push("videoOptionPlayPause");
-	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionPlayPause" class="videoToolsItem">Pause</div>';
+	document.getElementById("guiPlayer_Tools").innerHTML += '<div id="videoOptionPlayPause" class="videoToolsItem videoToolsItemIcon"><span class="playerIcon iconPause"><span class="iconPauseBar"></span><span class="iconPauseBar"></span></span></div>';
 
 	if (this.PlayerData.Chapters !== undefined) {
 		for (var index = 0; index < this.PlayerData.Chapters.length; index++) {
@@ -669,7 +669,8 @@ GuiPlayer_Display.updateDisplayedItemsSub = function() {
 GuiPlayer_Display.updatePlayPauseLabel = function() {
 	var el = document.getElementById("videoOptionPlayPause");
 	if (el == null) { return; }
-	el.innerHTML = (GuiPlayer.Status == "PLAYING") ? "Pause" : "Play";
+	//Playing shows the pause icon; paused shows the play icon.
+	el.innerHTML = (GuiPlayer.Status == "PLAYING") ? "<span class='playerIcon iconPause'><span class='iconPauseBar'></span><span class='iconPauseBar'></span></span>" : "<span class='playerIcon iconPlay'></span>";
 };
 
 //Is the bottom bar on screen?

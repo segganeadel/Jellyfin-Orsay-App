@@ -356,7 +356,7 @@ GuiPlayer_Versions.getMainStreamIndex = function(MediaSource, MediaSourceIndex) 
 	//---------------------------------------------------------------------------
 
 	var audioStreamFirst = (audioIndex == indexOfFirstAudio) ? true : false;
-	if (videoIndex > -1 && audioIndex > -1) {
+	if (videoIndex > -1) {
 		//Check if item is 3D and if tv cannot support it don't add it to the list!
 		if (MediaSource.Video3DFormat !== undefined) {
 			//If TV Supports 3d
@@ -373,12 +373,7 @@ GuiPlayer_Versions.getMainStreamIndex = function(MediaSource, MediaSourceIndex) 
 			this.MediaOptions.push([MediaSourceIndex,videoIndex,audioIndex,audioStreamFirst,subtitleIndex]); // Index != Id!!!
 		}				
 	} else {
-		if (videoIndex == -1) {
-			FileLog.write("Video : No Video Index Found - Not Added");
-		}
-		if (audioIndex == -1) {
-			FileLog.write("Video : No Audio Index Found - Not Added");	
-		}
+		FileLog.write("Video : No Video Index Found - Not Added");
 	}	
 }
 
